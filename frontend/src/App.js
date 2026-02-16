@@ -1,25 +1,32 @@
 import logo from './logo.svg';
 import './App.css';
+import Header from './components/Header';
+import Home from './pages/Home'
+import Dashboard from './pages/Dashboard'
+import Login from './pages/Login'
+import Messages from './pages/Messages'
+import Post from './pages/Post'
+import Items from './pages/Items'
+import Item from './pages/Item'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <>
+            <BrowserRouter>
+                <Header />
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/dashboard/" element={<Dashboard />} />
+                    <Route path="/post" element={<Post />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/messages" element={<Messages />} />
+                    <Route path="/items" element={<Items />} />
+                    <Route path="/items/:itemID" element={<Item />} />
+                </Routes>
+            </BrowserRouter>
+        </>
+    );
 }
 
 export default App;
