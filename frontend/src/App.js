@@ -1,6 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
@@ -24,6 +25,7 @@ function App() {
                     <Route path="/items" element={<Items />} />
                     <Route path="/items/:itemID" element={<Item />} />
                 </Routes>
+                <Footer />
             </BrowserRouter>
         </>
     );
