@@ -1,3 +1,12 @@
-import flask
+from flask import Flask
+from flask_cors import CORS
 
-flask.app()
+app = Flask(__name__)
+CORS(app)
+
+@app.route("/")
+def home():
+    return "Hello, Flask!"
+
+if __name__ == "__main__":
+    app.run(debug=True)
