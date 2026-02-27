@@ -1,9 +1,11 @@
-import React from "react";
-
-export default function Header() {
-  return (
-    <header style={{ padding: "1rem", backgroundColor: "#eee" }}>
-      <h1>Minerva Marketplace</h1>
-    </header>
-  );
-}
+function Header() {
+    return (
+      <header>
+        <div className="header-inner">
+          <div className="logo">Minerva Marketplace</div>
+        </div>
+      </header>
+    );
+  }
+  
+  export default Header;

@@ -1,5 +1,3 @@
-#this is just dummy code for testing purposes
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -14,6 +12,26 @@ def signup():
     data = request.json
     users.append(data)
     return jsonify({"message": "User created!"}), 201
+  
+@app.route("/api/items")
+def get_items():
+    mock_items = [
+        {
+            "id": 1,
+            "title": "Desk Lamp",
+            "city": "Berlin",
+            "type": "Offering",
+            "price": 15
+        },
+        {
+            "id": 2,
+            "title": "Projector",
+            "city": "Tokyo",
+            "type": "Looking For",
+            "price": None
+        }
+    ]
+    return jsonify(mock_items)
 
 @app.route("/login", methods=["POST"])
 def login():
