@@ -1,5 +1,9 @@
-function Login() {
-    return <div className="container">Login Page</div>;
-  }
-  
-  export default Login;
+import Body from "../components/Body"
+
+export default function Login() {
+    return (
+           <Body>
+           LOGIN PAGE
+           </Body>
+    )
+}
