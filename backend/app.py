@@ -1,4 +1,3 @@
-from flask import Flask, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -27,6 +26,8 @@ def get_items():
         }
     ]
     return jsonify(mock_items)
+
+app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
