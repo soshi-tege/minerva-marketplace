@@ -43,3 +43,4 @@ def login():
 
 if __name__ == "__main__":
     app.run(debug=True)
+app.register_blueprint(auth_bp, url_prefix="/api/auth")
