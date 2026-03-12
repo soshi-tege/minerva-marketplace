@@ -68,6 +68,48 @@ header {
     color: white;
 }
 
+.nav-links {
+    display: flex;
+    gap: 16px;
+    font-size: 15px;
+}
+
+.nav-auth {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.nav-links a,
+.nav-auth a {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.nav-links a.active,
+.nav-auth a.active {
+    background: #f3f3f3;
+}
+
+@media (max-width: 768px) {
+    .header-inner {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .nav-auth {
+        margin-left: auto;
+    }
+}
+
 .card {
     background: white;
     border-radius: 10px;
