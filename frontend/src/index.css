@@ -57,6 +57,15 @@ header {
     align-items: center;
 }
 
+.nav ul {
+    display: flex;
+    list-style-type: none;
+}
+
+.nav li~li {
+    margin-left: 1.5rem;
+}
+
 .logo {
     font-size: 22px;
     font-weight: 700;
@@ -88,6 +97,10 @@ header {
     border-radius: 8px;
 }
 
+.form {
+    max-width: 680px;
+}
+
 form label {
     display: block;
     margin: 14px 0 6px;
@@ -101,6 +114,10 @@ form textarea {
     padding: 10px;
     border-radius: 6px;
     border: 1px solid #ccc;
+}
+
+input[type="submit"] {
+    width: auto;
 }
 
 .messages {

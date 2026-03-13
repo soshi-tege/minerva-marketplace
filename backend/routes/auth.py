@@ -5,6 +5,7 @@ from backend.models import db, User
 
 auth_bp = Blueprint("auth", __name__)
 
+
 @auth_bp.post("/signup")
 def signup():
     data = request.get_json(silent=True) or {}
