@@ -1,3 +1,5 @@
+import { useState, useEffect } from ‘react’;
+import { Link } from ‘react-router-dom’;
 import Body from "../components/Body"
 import ItemCard from "../components/ItemCard"
 import Button from "../components/Button"
@@ -39,6 +41,10 @@ export default function Home() {
                     ))}
                 </div>
             </div>
+            <h2>Browse Listings</h2>
+            {loading && <p>Loading items...</p>}
+            {error && <p>Could not load items: {error}</p>}
+            {!loading && !error && <ItemList items={items} />}
         </Body>
     )
 }

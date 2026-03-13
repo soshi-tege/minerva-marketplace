@@ -1,21 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Body from '../components/Body';
-import { loginUser } from '../services/authService';
-export default function Login() {
+import { registerUser } from '../services/authService';
+
+export default function Register() {
     const navigate = useNavigate();
-    const [form, setForm] = useState({ email: '', password: '' });
+    const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '' });
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+
     function handleChange(e) {
         setForm({ ...form, [e.target.name]: e.target.value });
     }
+
     async function handleSubmit(e) {
         e.preventDefault();
         setError(null);
         setLoading(true);
         try {
-            const { token, user } = await loginUser(form);
+            const { token, user } = await registerUser(form);
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
             navigate('/');
@@ -25,11 +28,33 @@ export default function Login() {
             setLoading(false);
         }
     }
+
     return (
         <Body>
-            <h2>Log In</h2>
+            <h2>Create Account</h2>
             <form className="card" onSubmit={handleSubmit}>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
+
+                <label>First Name</label>
+                <input
+                    type="text"
+                    name="first_name"
+                    value={form.first_name}
+                    onChange={handleChange}
+                    placeholder="Jane"
+                    required
+                />
+
+                <label>Last Name</label>
+                <input
+                    type="text"
+                    name="last_name"
+                    value={form.last_name}
+                    onChange={handleChange}
+                    placeholder="Doe"
+                    required
+                />
+
                 <label>Email</label>
                 <input
                     type="email"
@@ -39,6 +64,7 @@ export default function Login() {
                     placeholder="you@minerva.edu"
                     required
                 />
+
                 <label>Password</label>
                 <input
                     type="password"
@@ -48,10 +74,12 @@ export default function Login() {
                     placeholder="••••••••"
                     required
                 />
+
                 <button type="submit" disabled={loading}>
-                    {loading ? 'Logging in…' : 'Log In'}
+                    {loading ? 'Creating account…' : 'Register'}
                 </button>
-                <p>No account? <Link to="/register">Register here</Link></p>
+
+                <p>Already have an account? <Link to="/login">Log in</Link></p>
             </form>
         </Body>
     );
