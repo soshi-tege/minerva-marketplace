@@ -34,7 +34,13 @@ def get_items():
     return jsonify([item.to_dict() for item in items])
 
 
-app.register_blueprint(auth_bp, url_prefix="/api/auth")
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    for user in users:
+        if user["username"] == data["username"] and user["password"] == data["password"]:
+            return jsonify({"message": "Login successful!"})
+    return jsonify({"message": "Invalid credentials"}), 401
 
 with app.app_context():
     db.create_all()
