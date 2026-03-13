@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -9,28 +8,21 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await fetch("http://127.0.0.1:5001/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-
       if (!res.ok || !data.ok) {
         setError(data.error || "Login failed");
       } else {
-        login({
-          email: data.email,
-          token: data.token,
-        });
+        login({ email: data.email, first_name: data.first_name, token: data.token });
         navigate("/items");
       }
     } catch (err) {
@@ -39,7 +31,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-
   return (
     <div className="card" style={{ maxWidth: 420, margin: "40px auto" }}>
       <h2>Log in</h2>
@@ -48,12 +39,11 @@ export default function Login() {
         <input
           id="email"
           type="email"
-          placeholder="you@minerva.edu"
+          placeholder="you@uni.minerva.edu"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-
         <label htmlFor="password">Password</label>
         <input
           id="password"
@@ -63,11 +53,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-
-        {error && (
-          <div style={{ color: "#c0392b", marginTop: 10 }}>{error}</div>
-        )}
-
+        {error && <div style={{ color: "#c0392b", marginTop: 10 }}>{error}</div>}
         <button
           type="submit"
           className="btn-primary"
@@ -76,12 +62,8 @@ export default function Login() {
         >
           {loading ? "Logging in..." : "Log in"}
         </button>
-
         <p style={{ marginTop: 16, fontSize: 14 }}>
-          No account?{" "}
-          <Link to="/signup">
-            Sign up
-          </Link>
+          No account? <Link to="/signup">Sign up</Link>
         </p>
       </form>
     </div>
