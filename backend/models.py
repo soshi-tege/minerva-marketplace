@@ -1,57 +1,69 @@
-from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from datetime import datetime, timezone
+import bcrypt
+from . import db
 
 
 class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
 
-    items = db.relationship("Item", backref="user", lazy=True)
+    items = db.relationship("Item", back_populates="seller", lazy=True)
 
-    def __repr__(self):
-        return f"<User {self.email}>"
+    def set_password(self, password: str):
+        self.password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+    def check_password(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode(), self.password_hash.encode())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "created_at": self.created_at.isoformat(),
+        }
 
 
 class Item(db.Model):
     __tablename__ = "items"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-
+    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
-
-    city = db.Column(db.String(100), nullable=False)
-    listing_type = db.Column(db.String(50), nullable=False)  # offering / looking_for
+    price = db.Column(db.Integer, nullable=False)          # stored in cents
+    currency = db.Column(db.String(10), nullable=False, default="USD")
     category = db.Column(db.String(100), nullable=False)
+    condition = db.Column(db.String(50), nullable=False)   # New, Like New, Good, Fair
+    status = db.Column(db.String(50), nullable=False, default="active")  # active, reserved, sold, deleted
+    location = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
 
-    price_cents = db.Column(db.Integer, nullable=True)
-
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    seller = db.relationship("User", back_populates="items")
 
     def to_dict(self):
         return {
             "id": self.id,
-            "user_id": self.user_id,
+            "seller_id": self.seller_id,
             "title": self.title,
             "description": self.description,
-            "city": self.city,
-            "listing_type": self.listing_type,
+            "price": self.price,
+            "currency": self.currency,
             "category": self.category,
-            "price_cents": self.price_cents,
+            "condition": self.condition,
+            "status": self.status,
+            "location": self.location,
             "created_at": self.created_at.isoformat(),
-            "first_name": self.user.first_name if self.user else None,
+            "updated_at": self.updated_at.isoformat(),
         }
-
-    def __repr__(self):
-        return f"<Item {self.title}>"
-    
-    
