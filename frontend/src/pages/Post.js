@@ -43,7 +43,7 @@ export default function Post() {
         price_cents:
           form.price.trim().toLowerCase() === "free" || form.price.trim() === ""
             ? 0
-            : Math.round(Number(form.price) * 100),
+            : isNaN(Number(form.price)) ? 0 : Math.round(Number(form.price) * 100),
         // TODO: seller/user linkage when backend is ready
         seller_email: user?.email || null,
       };
