@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
 export default function Home() {
   return (
     <div>
@@ -9,7 +8,6 @@ export default function Home() {
         <p style={{ marginTop: 8, maxWidth: 520 }}>
           Minerva Marketplace provides an easy, sustainable solution for buying and selling items between Minervans in your city.
         </p>
-
         <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link to="/items">
             <button className="btn-primary">Browse items</button>
@@ -19,7 +17,6 @@ export default function Home() {
           </Link>
         </div>
       </section>
-
       <section className="grid">
         <div className="card">
           <h3>For students, by students</h3>
