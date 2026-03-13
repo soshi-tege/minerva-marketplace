@@ -1,3 +1,24 @@
+# Python virtual environments
+.venv/
+backend/.venv/
+
+# Local database
+backend/instance/
+*.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# pytest
+.pytest_cache/
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
 # Python
 venv/
 __pycache__/
