@@ -56,11 +56,6 @@ def login():
 
     if not is_minerva_email(email):
         return jsonify(ok=False, error="Use @minerva.edu or @edu.minerva.edu"), 400
-
-    try:
-        validate_password(password)
-    except ValueError as e:
-        return jsonify(ok=False, error=str(e)), 400
     
     user = User.query.filter_by(email=email).first()
     if not user:
