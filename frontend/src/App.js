@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
+import Register from './pages/Register'
 import Messages from './pages/Messages'
 import Post from './pages/Post'
 import Items from './pages/Items'
@@ -21,6 +22,7 @@ function App() {
                     <Route path="/dashboard/" element={<Dashboard />} />
                     <Route path="/post" element={<Post />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
                     <Route path="/messages" element={<Messages />} />
                     <Route path="/items" element={<Items />} />
                     <Route path="/items/:itemID" element={<Item />} />
