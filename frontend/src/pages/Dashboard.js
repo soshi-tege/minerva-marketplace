@@ -1,9 +1,10 @@
 import Body from "../components/Body"
+import Heading from "../components/Heading"
 
 export default function Dashboard() {
     return (
         <Body>
-            <h2>My Dashboard</h2>
+            <Heading level={2}>My Dashboard</Heading>
             <div class="card">
                 <h3>My Listings</h3>
                 <p>Mini Fridge – Available</p>

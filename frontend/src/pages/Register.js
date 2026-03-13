@@ -1,13 +1,16 @@
 import Body from "../components/Body"
 import Heading from "../components/Heading"
 
-export default function Login() {
+export default function Register() {
     return (
         <Body>
             <Heading level={2}>
-                Login
+                Register
             </Heading>
             <form className="form">
+                <label for="name">
+                    Name: <input id="name" name="name" type="text" />
+                </label>
                 <label for="email">
                     Email: <input id="email" name="email" type="email" />
                 </label>

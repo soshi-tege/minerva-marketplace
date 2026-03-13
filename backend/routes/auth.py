@@ -1,7 +1,12 @@
 from flask import Blueprint, jsonify, request
-from backend.services.auth_service import is_minerva_email, validate_password, issue_fake_token
+from backend.services.auth_service import (
+    is_minerva_email,
+    validate_password,
+    issue_fake_token,
+)
 
 auth_bp = Blueprint("auth", __name__)
+
 
 @auth_bp.post("/signup")
 def signup():
@@ -10,14 +15,20 @@ def signup():
     password = data.get("password", "")
 
     if not is_minerva_email(email):
-        return jsonify(ok=False, error="Use @minerva.edu or @edu.minerva.edu"), 400
+        return jsonify(
+            ok=False, error="Use @minerva.edu or @edu.minerva.edu"), 400
 
     try:
         validate_password(password)
     except ValueError as e:
         return jsonify(ok=False, error=str(e)), 400
 
-    return jsonify(ok=True, email=email.strip().lower(), token=issue_fake_token())
+    return jsonify(
+        ok=True,
+        email=email.strip().lower(),
+        token=issue_fake_token()
+    )
+
 
 @auth_bp.post("/login")
 def login():
@@ -26,12 +37,17 @@ def login():
     password = data.get("password", "")
 
     if not is_minerva_email(email):
-        return jsonify(ok=False, error="Use @minerva.edu or @edu.minerva.edu"), 400
+        return jsonify(
+            ok=False,
+            error="Use @minerva.edu or @edu.minerva.edu"), 400
 
     try:
         validate_password(password)
     except ValueError as e:
         return jsonify(ok=False, error=str(e)), 400
 
-    return jsonify(ok=True, email=email.strip().lower(), token=issue_fake_token())
-
+    return jsonify(
+        ok=True,
+        email=email.strip().lower(),
+        token=issue_fake_token()
+    )

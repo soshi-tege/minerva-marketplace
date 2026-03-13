@@ -1,10 +1,11 @@
 import Body from "../components/Body"
 import Button from "../components/Button"
+import Heading from "../components/Heading"
 
-export default function Messages() {
+export default function Post() {
     return (
         <Body>
-            <h2>List an Item</h2>
+            <Heading level={2}>List an Item</Heading>
             <form class="card">
                 <label>Photo</label><input type="file" />
                 <label>Item Name</label><input placeholder="Microwave" />
