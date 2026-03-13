@@ -1,58 +1,89 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Body from '../components/Body';
-import { loginUser } from '../services/authService';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
 export default function Login() {
-    const navigate = useNavigate();
-    const [form, setForm] = useState({ email: '', password: '' });
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false);
-    function handleChange(e) {
-        setForm({ ...form, [e.target.name]: e.target.value });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://127.0.0.1:5001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Login failed");
+      } else {
+        login({
+          email: data.email,
+          token: data.token,
+        });
+        navigate("/items");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    async function handleSubmit(e) {
-        e.preventDefault();
-        setError(null);
-        setLoading(true);
-        try {
-            const { token, user } = await loginUser(form);
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(user));
-            navigate('/');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }
-    return (
-        <Body>
-            <h2>Log In</h2>
-            <form className="card" onSubmit={handleSubmit}>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                <label>Email</label>
-                <input
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="you@minerva.edu"
-                    required
-                />
-                <label>Password</label>
-                <input
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="••••••••"
-                    required
-                />
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Logging in…' : 'Log In'}
-                </button>
-                <p>No account? <Link to="/register">Register here</Link></p>
-            </form>
-        </Body>
-    );
+  };
+
+  return (
+    <div className="card" style={{ maxWidth: 420, margin: "40px auto" }}>
+      <h2>Log in</h2>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="email">Minerva email</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="you@minerva.edu"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        {error && (
+          <div style={{ color: "#c0392b", marginTop: 10 }}>{error}</div>
+        )}
+
+        <button
+          type="submit"
+          className="btn-primary"
+          style={{ marginTop: 16, width: "100%" }}
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Log in"}
+        </button>
+
+        <p style={{ marginTop: 16, fontSize: 14 }}>
+          No account?{" "}
+          <Link to="/signup">
+            Sign up
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
 }
