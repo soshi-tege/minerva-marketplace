@@ -64,3 +64,26 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
+
+@app.route("/api/items/<int:item_id>", methods=["PUT"])
+def update_item(item_id):
+    try:
+        verify_jwt_in_request()
+        user_id = int(get_jwt_identity())
+    except Exception:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    item = Item.query.get_or_404(item_id)
+    if item.seller_id != user_id:
+        return jsonify({"error": "Forbidden"}), 403
+
+    data = request.get_json()
+    item.title = data.get("title", item.title)
+    item.category = data.get("category", item.category)
+    item.price = data.get("price_cents", item.price)
+    item.condition = data.get("condition", item.condition)
+    item.location = data.get("location", item.location)
+    item.description = data.get("description", item.description)
+    item.status = data.get("status", item.status)
+    db.session.commit()
+    return jsonify(item.to_dict())
