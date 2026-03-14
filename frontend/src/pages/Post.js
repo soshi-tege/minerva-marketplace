@@ -48,9 +48,10 @@ export default function Post() {
         seller_email: user?.email || null,
       };
 
+      const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}"); const token = storedUser?.token;
       const res = await fetch("http://127.0.0.1:5001/api/items", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
 

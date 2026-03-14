@@ -20,7 +20,7 @@ export default function Header() {
           {isAuthenticated ? (
             <>
               <span style={{ fontSize: 14 }}>
-                Signed in as <strong>{user?.username}</strong>
+                Hi, <strong>{user?.first_name}</strong>
               </span>
               <button type="button" onClick={logout} style={{ background: "#eee" }}>
                 Log out

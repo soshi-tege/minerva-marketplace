@@ -1,50 +1,36 @@
-import { useState, useEffect } from ‘react’;
-import { Link } from ‘react-router-dom’;
-import Body from "../components/Body"
-import ItemCard from "../components/ItemCard"
-import Button from "../components/Button"
-import { BrowserRouter, Routes, Route, Link, Outlet } from 'react-router-dom';
-import Heading from "../components/Heading"
-
+import React from "react";
+import { Link } from "react-router-dom";
 export default function Home() {
-
-    const items = [
-        {
-            id: 1,
-            name: "Mini Fridge",
-            price: 20,
-            location: "Tokyo",
-        },
-        {
-            id: 1,
-            name: "Mini Fridge",
-            price: 20,
-            location: "Tokyo",
-        },
-        {
-            id: 1,
-            name: "Mini Fridge",
-            price: 20,
-            location: "Tokyo",
-        },
-    ]
-
-    return (
-        <Body>
-            <div class="card">
-                <h1>Leaving your dorm? Don’t throw it away.</h1>
-                <p>Arriving? Get what you need from other Minervans.</p>
-                <Heading level={2}>Browse Listings</Heading>
-                <div class="grid">
-                    {items.map((item) => (
-                        <ItemCard item={item}></ItemCard>
-                    ))}
-                </div>
-            </div>
-            <h2>Browse Listings</h2>
-            {loading && <p>Loading items...</p>}
-            {error && <p>Could not load items: {error}</p>}
-            {!loading && !error && <ItemList items={items} />}
-        </Body>
-    )
+  return (
+    <div>
+      <section className="card" style={{ marginBottom: 32 }}>
+        <h1>Buy and sell with other Minervans in your city!</h1>
+        <p style={{ marginTop: 8, maxWidth: 520 }}>
+          Minerva Marketplace provides an easy, sustainable solution for buying and selling items between Minervans in your city.
+        </p>
+        <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <Link to="/items">
+            <button className="btn-primary">Browse items</button>
+          </Link>
+          <Link to="/post">
+            <button style={{ background: "#eee" }}>Post an item</button>
+          </Link>
+        </div>
+      </section>
+      <section className="grid">
+        <div className="card">
+          <h3>For students, by students</h3>
+          <p style={{ marginTop: 8 }}>Only students can list and buy, so you know who you are dealing with.</p>
+        </div>
+        <div className="card">
+          <h3>Keep it on campus</h3>
+          <p style={{ marginTop: 8 }}>Meet up in familiar spots.</p>
+        </div>
+        <div className="card">
+          <h3>Give your stuff a second life</h3>
+          <p style={{ marginTop: 8 }}>Turn unused items into cash, and help someone else out.</p>
+        </div>
+      </section>
+    </div>
+  );
 }

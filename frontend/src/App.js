@@ -19,13 +19,13 @@ function App() {
         <main className="container">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/post" element={<ProtectedRoute><Post /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/post" element={<ProtectedRoute><Post /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="/items" element={<Items />} />
-            <Route path="/items/:itemID" element={<Item />} />
+            <Route path="/items" element={<ProtectedRoute><Items /></ProtectedRoute>} />
+            <Route path="/items/:itemID" element={<ProtectedRoute><Item /></ProtectedRoute>} />
           </Routes>
         </main>
       </BrowserRouter>
