@@ -61,3 +61,48 @@ class Item(db.Model):
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
+
+class Conversation(db.Model):
+    __tablename__ = "conversations"
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey("items.id"), nullable=False)
+    buyer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    item = db.relationship("Item", backref="conversations")
+    buyer = db.relationship("User", foreign_keys=[buyer_id], backref="buying_conversations")
+    seller = db.relationship("User", foreign_keys=[seller_id], backref="selling_conversations")
+    messages = db.relationship("Message", back_populates="conversation", order_by="Message.created_at")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "item_id": self.item_id,
+            "item_title": self.item.title,
+            "buyer_id": self.buyer_id,
+            "seller_id": self.seller_id,
+            "created_at": self.created_at.isoformat(),
+        }
+
+
+class Message(db.Model):
+    __tablename__ = "messages"
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey("conversations.id"), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    conversation = db.relationship("Conversation", back_populates="messages")
+    sender = db.relationship("User", backref="messages")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "conversation_id": self.conversation_id,
+            "sender_id": self.sender_id,
+            "sender_name": self.sender.first_name,
+            "body": self.body,
+            "created_at": self.created_at.isoformat(),
+        }

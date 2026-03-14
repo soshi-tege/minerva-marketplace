@@ -27,10 +27,10 @@ export default function Signup() {
         body: JSON.stringify({ first_name: firstName, last_name: lastName, email, password, city, cohort }),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) {
+      if (!res.ok) {
         setError(data.error || "Sign up failed");
       } else {
-        login({ email: data.email, first_name: data.first_name, token: data.token });
+        login({ ...data.user, token: data.token });
         navigate("/");
       }
     } catch (err) {

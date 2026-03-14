@@ -19,10 +19,10 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) {
+      if (!res.ok) {
         setError(data.error || "Login failed");
       } else {
-        login({ email: data.email, first_name: data.first_name, token: data.token });
+        login({ ...data.user, token: data.token });
         navigate("/items");
       }
     } catch (err) {
