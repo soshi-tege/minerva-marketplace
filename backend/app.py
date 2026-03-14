@@ -29,11 +29,17 @@ def get_item(item_id):
 def get_items():
     city = request.args.get("city")
     listing_type = request.args.get("listing_type")
+    q = request.args.get("q", "").strip()
     query = Item.query
     if city:
         query = query.filter_by(city=city)
     if listing_type:
         query = query.filter_by(listing_type=listing_type)
+    if q:
+        pattern = f"%{q}%"
+        query = query.filter(
+            Item.title.ilike(pattern) | Item.description.ilike(pattern)
+        )
     items = query.order_by(Item.created_at.desc()).all()
     return jsonify([item.to_dict() for item in items])
 
@@ -59,12 +65,6 @@ def create_item():
     db.session.commit()
     return jsonify(item.to_dict()), 201
 
-with app.app_context():
-    db.create_all()
-
-if __name__ == "__main__":
-    app.run(port=5001, debug=True)
-
 @app.route("/api/items/<int:item_id>", methods=["PUT"])
 def update_item(item_id):
     try:
@@ -87,3 +87,25 @@ def update_item(item_id):
     item.status = data.get("status", item.status)
     db.session.commit()
     return jsonify(item.to_dict())
+
+@app.route("/api/items/<int:item_id>", methods=["DELETE"])
+def delete_item(item_id):
+    try:
+        verify_jwt_in_request()
+        user_id = int(get_jwt_identity())
+    except Exception:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    item = Item.query.get_or_404(item_id)
+    if item.seller_id != user_id:
+        return jsonify({"error": "Forbidden"}), 403
+
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({"message": "Item deleted"}), 200
+
+with app.app_context():
+    db.create_all()
+
+if __name__ == "__main__":
+    app.run(port=5001, debug=True)

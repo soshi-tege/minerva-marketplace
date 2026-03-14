@@ -38,7 +38,7 @@ def signup():
 
     new_user = User(
         email=email,
-        password_hash=generate_password_hash(password),
+        password_hash=generate_password_hash(password, method="pbkdf2:sha256"),
         first_name=first_name,
         last_name=last_name,
         city=city,
