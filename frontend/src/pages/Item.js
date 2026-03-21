@@ -4,7 +4,7 @@ import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
 
-const API_BASE = "http://localhost:5001/api";
+import API_BASE from "../config";
 const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
@@ -92,7 +92,7 @@ export default function Item() {
         ) : (
           <>
             <Heading level={2}>{item.title}</Heading>
-            <p><strong>${(item.price / 100).toFixed(2)} {item.currency}</strong> · {item.condition}</p>
+            <p><strong>{item.price === 0 ? "Free" : `$${(item.price / 100).toFixed(2)} ${item.currency}`}</strong> · {item.condition}</p>
             <p>{item.description}</p>
             <p style={{ color: "#666", fontSize: "0.9rem" }}>📍 {item.location}</p>
             <p style={{ fontSize: "13px", color: item.status === "active" ? "#27ae60" : "#888", fontWeight: 600, textTransform: "capitalize" }}>Status: {item.status}</p>
