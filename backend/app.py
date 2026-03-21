@@ -58,6 +58,7 @@ def create_item():
         price=data.get("price_cents", 0),
         currency="USD",
         condition=data.get("condition", "Good"),
+        listing_type=data.get("listing_type", "offering"),
         location=data.get("location"),
         description=data.get("description"),
     )
