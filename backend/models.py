@@ -29,12 +29,13 @@ class Item(db.Model):
     condition = db.Column(db.String(50), nullable=False)
     status = db.Column(db.String(50), nullable=False, default="active")
     location = db.Column(db.String(255), nullable=True)
+    image_url = db.Column(db.String(512), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     seller = db.relationship("User", back_populates="items")
 
     def to_dict(self):
-        return {"id": self.id, "seller_id": self.seller_id, "title": self.title, "description": self.description, "price": self.price, "currency": self.currency, "category": self.category, "condition": self.condition, "status": self.status, "location": self.location, "created_at": self.created_at.isoformat(), "updated_at": self.updated_at.isoformat()}
+        return {"id": self.id, "seller_id": self.seller_id, "title": self.title, "description": self.description, "price": self.price, "currency": self.currency, "category": self.category, "condition": self.condition, "status": self.status, "location": self.location, "image_url": self.image_url, "created_at": self.created_at.isoformat(), "updated_at": self.updated_at.isoformat()}
 
 class Conversation(db.Model):
     __tablename__ = "conversations"

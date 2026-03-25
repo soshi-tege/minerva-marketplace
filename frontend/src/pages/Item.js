@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
-
-const API_BASE = "http://localhost:5001/api";
+import { API_BASE, itemImageSrc } from "../apiConfig";
 const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
@@ -91,6 +90,17 @@ export default function Item() {
           </>
         ) : (
           <>
+            <img
+              src={itemImageSrc(item.image_url)}
+              alt=""
+              style={{
+                width: "100%",
+                maxHeight: 280,
+                objectFit: "cover",
+                borderRadius: 8,
+                marginBottom: 16,
+              }}
+            />
             <Heading level={2}>{item.title}</Heading>
             <p><strong>${(item.price / 100).toFixed(2)} {item.currency}</strong> · {item.condition}</p>
             <p>{item.description}</p>

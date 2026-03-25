@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-
-const PLACEHOLDER = "https://placehold.co/300x200?text=No+Image";
+import { itemImageSrc } from "../apiConfig";
 
 const CONDITION_COLORS = {
   "New": "#27ae60",
@@ -19,7 +18,7 @@ export default function ItemCard({ item }) {
         onMouseEnter={e => e.currentTarget.style.transform = "translateY(-3px)"}
         onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
       >
-        <img src={PLACEHOLDER} alt={item.title} style={{ width: "100%", height: "160px", objectFit: "cover", borderRadius: "8px" }} />
+        <img src={itemImageSrc(item.image_url)} alt={item.title} style={{ width: "100%", height: "160px", objectFit: "cover", borderRadius: "8px" }} />
         <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{item.title}</h3>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontWeight: 700, fontSize: "15px", color: "#c0392b" }}>{price}</span>
