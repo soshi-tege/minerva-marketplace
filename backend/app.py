@@ -4,6 +4,7 @@ from flask_jwt_extended import JWTManager, verify_jwt_in_request, get_jwt_identi
 from backend.models import db, Item
 from backend.routes.auth import auth_bp
 from backend.routes.messages import messages_bp
+from backend.routes.me import me_bp
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
@@ -15,6 +16,7 @@ CORS(app)
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(messages_bp)
+app.register_blueprint(me_bp)
 
 @app.route("/api/health")
 def health():
