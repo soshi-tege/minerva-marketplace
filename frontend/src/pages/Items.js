@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import ItemCard from "../components/ItemCard";
+import Button from "../components/Button";
+import emptyState from "../assets/empty-state.svg";
+import { Link } from "react-router-dom";
 
 const CATEGORIES = ["All", "Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
 
@@ -44,9 +47,18 @@ export default function Items() {
         </div>
       </div>
 
-      {loading && <p>Loading items...</p>}
-      {error && <p style={{ color: "#c0392b" }}>{error}</p>}
-      {!loading && !error && filtered.length === 0 && <p>No items found. Be the first to post something!</p>}
+      {loading && <p className="empty-state">Loading items...</p>}
+      {error && <p className="empty-state" style={{ color: "#c0392b" }}>{error}</p>}
+      {!loading && !error && filtered.length === 0 && (
+        <div className="empty-state">
+          <img src={emptyState} alt="No items" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
+          <div style={{ fontWeight: 500, marginBottom: 8 }}>No listings yet</div>
+          <div style={{ color: '#888', marginBottom: 16 }}>Looks like there’s nothing here yet.</div>
+          <Link to="/post" style={{ textDecoration: 'none' }}>
+            <Button style="btn-primary">Post an item</Button>
+          </Link>
+        </div>
+      )}
 
       <div className="grid">
         {filtered.map(item => <ItemCard key={item.id} item={item} />)}

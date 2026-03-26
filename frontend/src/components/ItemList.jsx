@@ -2,7 +2,7 @@ import ItemCard from './ItemCard';
 
 export default function ItemList({ items }) {
     if (!items || items.length === 0) {
-        return <p>No items available.</p>;
+        return <p className="empty-state">No items available.</p>;
     }
 
     return (

@@ -28,6 +28,29 @@ a {
     text-decoration: none;
     color: inherit;
 }
+.btn-primary, button, .nav-links a.active, .nav-auth a.active {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: 600;
+    background: #c0392b;
+    color: #fff;
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(192,57,43,0.06);
+}
+.btn-primary:hover, button:hover, .nav-links a.active:hover, .nav-auth a.active:hover {
+    background: #a93226;
+    color: #fff;
+}
+.btn-primary:active, button:active {
+    background: #922b21;
+}
+.btn-primary:disabled, button:disabled {
+    background: #e6b0aa;
+    color: #fff;
+    cursor: not-allowed;
+}
 
 button {
     cursor: pointer;
@@ -70,11 +93,23 @@ header {
     font-size: 22px;
     font-weight: 700;
     color: #c0392b;
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    margin-bottom: 16px;
+}
 }
 
 .btn-primary {
     background: #c0392b;
     color: white;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
 }
 
 .nav-links {
@@ -83,6 +118,13 @@ header {
     font-size: 15px;
 }
 
+.item-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
 .nav-auth {
     display: flex;
     gap: 12px;
@@ -111,11 +153,115 @@ header {
         order: 3;
         width: 100%;
         justify-content: center;
+.messages {
+    display: flex;
+    gap: 16px;
+}
         flex-wrap: wrap;
     }
 
     .nav-auth {
+.conversations {
+    width: 30%;
+    margin-right: 8px;
+}
         margin-left: auto;
+    }
+    .container {
+        max-width: 100vw;
+.chat {
+    width: 70%;
+    margin-left: 8px;
+}
+        padding: 12px;
+    }
+    .card {
+        padding: 12px;
+.message {
+    margin-bottom: 8px;
+}
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    }
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+.empty-state, .no-data, .no-items, .no-messages {
+    text-align: center;
+    color: #888;
+    font-size: 1.1rem;
+    padding: 32px 0 16px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+    .item-card img {
+        height: 120px;
+    }
+    .messages {
+        flex-direction: column;
+        gap: 10px;
+        padding: 0.5rem;
+    }
+    .conversations, .chat {
+        width: 100% !important;
+        min-width: 0;
+        padding: 0.5rem !important;
+    }
+    .chat {
+        margin-top: 10px;
+    }
+    .header-inner {
+        padding: 10px 8px;
+    }
+    .logo {
+        font-size: 18px;
+    }
+    h1, h2, h3 {
+        font-size: 1.2rem;
+    }
+    button, .btn-primary {
+        font-size: 1rem;
+        padding: 12px 0;
+        width: 100%;
+        min-height: 44px;
+        border-radius: 8px;
+    }
+    input, select, textarea {
+        font-size: 1rem;
+        padding: 12px 10px;
+        border-radius: 8px;
+    }
+    form.card {
+        padding: 10px;
+    }
+    .nav-links {
+        font-size: 1rem;
+        gap: 10px;
+    }
+    .nav-auth {
+        gap: 8px;
+    }
+    .Body {
+        flex-direction: column !important;
+        padding: 0 !important;
+    }
+    .item-card {
+        gap: 6px !important;
+    }
+    .item-card h3 {
+        font-size: 1rem !important;
+    }
+    .item-card p, .item-card span {
+        font-size: 0.95rem !important;
+    }
+    .empty-state, .no-data, .no-items, .no-messages {
+        text-align: center;
+        color: #888;
+        font-size: 1.1rem;
+        padding: 32px 0 16px 0;
     }
 }
 
