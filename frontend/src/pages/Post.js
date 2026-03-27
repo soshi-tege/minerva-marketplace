@@ -1,3 +1,4 @@
+import API_BASE from "../config";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Body from "../components/Body";
@@ -53,6 +54,7 @@ export default function Post() {
         body.append("image", imageFile);
       }
 
+      const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}"); const token = storedUser?.token;
       const res = await fetch(`${API_BASE}/items`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
