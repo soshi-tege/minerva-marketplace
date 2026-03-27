@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
-import { API_BASE, itemImageSrc } from "../apiConfig";
+import { API_BASE, formatPriceCents, itemImageSrc } from "../apiConfig";
 const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
@@ -15,6 +15,7 @@ export default function Item() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
   const token = storedUser?.token;
@@ -65,6 +66,25 @@ export default function Item() {
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!token) return;
+    const confirmed = window.confirm("Delete this listing? This action cannot be undone.");
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`${API_BASE}/items/${itemID}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        navigate("/dashboard");
+      }
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -120,7 +140,7 @@ export default function Item() {
               }}
             />
             <Heading level={2}>{item.title}</Heading>
-            <p><strong>${(item.price / 100).toFixed(2)} {item.currency}</strong> · {item.condition}</p>
+            <p><strong>{formatPriceCents(item.price)}</strong> · {item.condition}</p>
             <p>{item.description}</p>
             <p style={{ color: "#666", fontSize: "0.9rem" }}>📍 {item.location}</p>
             <p style={{ fontSize: "13px", color: item.status === "active" ? "#27ae60" : "#888", fontWeight: 600, textTransform: "capitalize" }}>Status: {item.status}</p>
@@ -133,6 +153,9 @@ export default function Item() {
                       {saving ? "Updating..." : "Mark as sold"}
                     </Button>
                   )}
+                  <Button onClick={handleDelete}>
+                    {deleting ? "Deleting..." : "Delete listing"}
+                  </Button>
                 </>
               ) : (
                 item.status !== "sold" && (

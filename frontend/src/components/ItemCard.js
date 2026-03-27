@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { itemImageSrc } from "../apiConfig";
+import { formatPriceCents, itemImageSrc } from "../apiConfig";
 
 const CONDITION_COLORS = {
   "New": "#27ae60",
@@ -9,7 +9,7 @@ const CONDITION_COLORS = {
 };
 
 export default function ItemCard({ item }) {
-  const price = item.price === 0 ? "Free" : `$${(item.price / 100).toFixed(2)}`;
+  const price = formatPriceCents(item.price);
   const conditionColor = CONDITION_COLORS[item.condition] || "#888";
   const isSold = item.status === "sold";
 

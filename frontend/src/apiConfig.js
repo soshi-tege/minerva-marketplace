@@ -15,3 +15,10 @@ export function itemImageSrc(imageUrl) {
   const path = imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`;
   return `${API_ORIGIN}${path}`;
 }
+
+/** Format integer cents into marketplace display price. */
+export function formatPriceCents(priceCents) {
+  const cents = Number(priceCents) || 0;
+  if (cents === 0) return "Free";
+  return `$${(cents / 100).toFixed(2)}`;
+}
