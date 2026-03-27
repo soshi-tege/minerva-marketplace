@@ -50,6 +50,24 @@ export default function Item() {
     setSaving(false);
   };
 
+  const handleMarkAsSold = async () => {
+    if (!token) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_BASE}/items/${itemID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: "sold" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setItem(data);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) return <Body><p>Loading...</p></Body>;
   if (!item) return <Body><p>Item not found.</p></Body>;
 
@@ -108,9 +126,18 @@ export default function Item() {
             <p style={{ fontSize: "13px", color: item.status === "active" ? "#27ae60" : "#888", fontWeight: 600, textTransform: "capitalize" }}>Status: {item.status}</p>
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
               {isSeller ? (
-                <Button onClick={() => setEditing(true)} style="btn-primary">Edit listing</Button>
+                <>
+                  <Button onClick={() => setEditing(true)} style="btn-primary">Edit listing</Button>
+                  {item.status !== "sold" && (
+                    <Button onClick={handleMarkAsSold}>
+                      {saving ? "Updating..." : "Mark as sold"}
+                    </Button>
+                  )}
+                </>
               ) : (
-                <Button onClick={handleContact} style="btn-primary">Contact Seller</Button>
+                item.status !== "sold" && (
+                  <Button onClick={handleContact} style="btn-primary">Contact Seller</Button>
+                )
               )}
             </div>
           </>
