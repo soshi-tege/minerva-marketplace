@@ -1,3 +1,4 @@
+import API_BASE from "../config";
 import React, { useEffect, useState } from "react";
 import ItemCard from "../components/ItemCard";
 
@@ -11,7 +12,7 @@ export default function Items() {
   const [category, setCategory] = useState("All");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5001/api/items")
+    fetch(`${API_BASE}/items`)
       .then(res => res.json())
       .then(data => { setItems(data.items || data || []); setLoading(false); })
       .catch(() => { setError("Could not load items."); setLoading(false); });
