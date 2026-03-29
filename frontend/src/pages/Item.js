@@ -103,6 +103,14 @@ export default function Item() {
                 <Button onClick={handleContact} style="btn-primary">Contact Seller</Button>
               )}
             </div>
+            {item.seller && (
+              <div style={{ marginTop: 24, padding: "16px", background: "#f9f9f9", borderRadius: "8px", borderTop: "1px solid #eee" }}>
+                <p style={{ margin: "0 0 6px 0", fontSize: "13px", color: "#999", textTransform: "uppercase", letterSpacing: "0.05em" }}>Seller</p>
+                <p style={{ margin: "0 0 4px 0", fontWeight: 600 }}>{item.seller.first_name} {item.seller.last_name}</p>
+                <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "#666" }}>{item.seller.city} · Cohort {item.seller.cohort}</p>
+                <p style={{ margin: 0, fontSize: "13px", color: "#999" }}>Member since {new Date(item.seller.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
+              </div>
+            )}
           </>
         )}
       </div>
