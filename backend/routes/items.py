@@ -82,3 +82,9 @@ def delete_item(item_id):
 @items_bp.get("/categories")
 def get_categories():
     return jsonify(item_service.get_categories())
+
+
+@items_bp.get("/cities")
+def get_cities():
+    """Return a sorted list of distinct cities where items are listed."""
+    return jsonify(item_service.get_cities())
