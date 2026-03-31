@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
-
-import API_BASE from "../config";
+import API_BASE, { formatPriceCents, itemImageSrc } from "../config";
 const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
@@ -17,6 +16,7 @@ export default function Item() {
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
   const token = storedUser?.token;
@@ -41,15 +41,20 @@ export default function Item() {
 
   const handleSave = async () => {
     setSaving(true);
-    const res = await fetch(`${API_BASE}/items/${itemID}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ ...form, price_cents: Math.round(form.price * 100) }),
-    });
-    const data = await res.json();
-    setItem(data);
-    setEditing(false);
-    setSaving(false);
+    try {
+      const res = await fetch(`${API_BASE}/items/${itemID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ...form, price_cents: Math.round(form.price * 100) }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setItem(data);
+        setEditing(false);
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleMarkAsSold = async () => {
@@ -75,6 +80,7 @@ export default function Item() {
     const confirmed = window.confirm("Delete this listing? This action cannot be undone.");
     if (!confirmed) return;
 
+    setDeleteError("");
     setDeleting(true);
     try {
       const res = await fetch(`${API_BASE}/items/${itemID}`, {
@@ -83,7 +89,12 @@ export default function Item() {
       });
       if (res.ok) {
         navigate("/dashboard");
+      } else {
+        const payload = await res.json().catch(() => ({}));
+        setDeleteError(payload.error || "Could not delete listing. Please try again.");
       }
+    } catch {
+      setDeleteError("Could not delete listing. Please check your connection and try again.");
     } finally {
       setDeleting(false);
     }
@@ -141,10 +152,13 @@ export default function Item() {
               }}
             />
             <Heading level={2}>{item.title}</Heading>
-            <p><strong>{item.price === 0 ? "Free" : `$${(item.price / 100).toFixed(2)} ${item.currency}`}</strong> · {item.condition}</p>
+            <p><strong>{formatPriceCents(item.price)}</strong> · {item.condition}</p>
             <p>{item.description}</p>
             <p style={{ color: "#666", fontSize: "0.9rem" }}>📍 {item.location}</p>
             <p style={{ fontSize: "13px", color: item.status === "active" ? "#27ae60" : "#888", fontWeight: 600, textTransform: "capitalize" }}>Status: {item.status}</p>
+            {deleteError && (
+              <p style={{ color: "#c0392b", marginTop: 8 }}>{deleteError}</p>
+            )}
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
               {isSeller ? (
                 <>
@@ -154,7 +168,7 @@ export default function Item() {
                       {saving ? "Updating..." : "Mark as sold"}
                     </Button>
                   )}
-                  <Button onClick={handleDelete}>
+                  <Button onClick={handleDelete} style="btn-danger">
                     {deleting ? "Deleting..." : "Delete listing"}
                   </Button>
                 </>

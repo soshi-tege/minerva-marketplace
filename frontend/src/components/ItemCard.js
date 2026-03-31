@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { formatPriceCents, itemImageSrc } from "../apiConfig";
+import { formatPriceCents, itemImageSrc } from "../config";
 
 const CONDITION_COLORS = {
   "New": "#27ae60",

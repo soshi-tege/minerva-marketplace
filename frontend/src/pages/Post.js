@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
-import { API_BASE } from "../apiConfig";
 
 export default function Post() {
   const navigate = useNavigate();
@@ -49,12 +48,12 @@ export default function Post() {
       body.append("category", form.category);
       body.append("location", form.location || "");
       body.append("description", form.description || "");
+      body.append("pickup_by", form.pickupBy || "");
       body.append("price_cents", String(priceCents));
       if (imageFile) {
         body.append("image", imageFile);
       }
 
-      const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}"); const token = storedUser?.token;
       const res = await fetch(`${API_BASE}/items`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
