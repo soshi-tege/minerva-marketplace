@@ -28,10 +28,6 @@ instance/
 # Node
 node_modules/
 
-# macOS
-.DS_Store.DS_Store
-instance/
-*.db
 
 # Uploaded listing images (keep folder via .gitkeep)
 backend/static/uploads/*
