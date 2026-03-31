@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from ..models import db, Conversation, Message, Item
 
 
@@ -52,15 +53,21 @@ def send_message(convo_id, sender_id, body):
 
 
 def get_unread_count(user_id):
-    """Count conversations with messages the user hasn't seen.
-    Simple approach: count conversations where the last message was not sent by this user.
-    """
-    convos = Conversation.query.filter(
-        (Conversation.buyer_id == user_id) | (Conversation.seller_id == user_id)
-    ).all()
-
-    count = 0
-    for c in convos:
-        if c.messages and c.messages[-1].sender_id != user_id:
-            count += 1
+    """Count unread messages for a user (messages sent by others with no read_at)."""
+    count = Message.query.join(Conversation).filter(
+        ((Conversation.buyer_id == user_id) | (Conversation.seller_id == user_id)),
+        Message.sender_id != user_id,
+        Message.read_at == None
+    ).count()
     return count
+
+
+def mark_conversation_read(convo_id, user_id):
+    """Mark all messages in a conversation as read for this user."""
+    messages = Message.query.filter_by(conversation_id=convo_id).filter(
+        Message.sender_id != user_id,
+        Message.read_at == None
+    ).all()
+    for msg in messages:
+        msg.read_at = datetime.now(timezone.utc)
+    db.session.commit()

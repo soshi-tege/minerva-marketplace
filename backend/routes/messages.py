@@ -44,3 +44,11 @@ def unread_count():
     user_id = int(get_jwt_identity())
     count = message_service.get_unread_count(user_id)
     return jsonify({"unread_count": count})
+
+
+@messages_bp.post("/conversations/<int:convo_id>/read")
+@jwt_required()
+def mark_read(convo_id):
+    user_id = int(get_jwt_identity())
+    message_service.mark_conversation_read(convo_id, user_id)
+    return jsonify({"ok": True})

@@ -1,8 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getUnreadCount } from "../services/api";
+
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchCount = () => {
+      getUnreadCount().then(setUnreadCount);
+    };
+
+    fetchCount();
+    const interval = setInterval(fetchCount, 5000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
   return (
     <header>
       <div className="header-inner">
@@ -13,7 +29,21 @@ export default function Header() {
           <NavLink to="/" end>Home</NavLink>
           <NavLink to="/items">Browse</NavLink>
           <NavLink to="/post">Post item</NavLink>
-          <NavLink to="/messages">Messages</NavLink>
+          <NavLink to="/messages">
+            Messages{unreadCount > 0 && (
+              <span style={{
+                background: "#c0392b",
+                color: "white",
+                borderRadius: "10px",
+                padding: "1px 6px",
+                fontSize: "11px",
+                marginLeft: "4px",
+                fontWeight: 700,
+              }}>
+                {unreadCount}
+              </span>
+            )}
+          </NavLink>
           <NavLink to="/dashboard">Dashboard</NavLink>
         </nav>
         <div className="nav-auth">
