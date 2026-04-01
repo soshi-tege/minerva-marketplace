@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Body from "../components/Body";
 import Heading from "../components/Heading";
+import Button from "../components/Button";
+import emptyDashboard from "../assets/empty-dashboard.svg";
 
 import API_BASE from "../config";
 
@@ -35,7 +37,16 @@ export default function Dashboard() {
 
       <div className="card" style={{ marginBottom: "20px" }}>
         <h3 style={{ marginTop: 0 }}>My Listings</h3>
-        {items.length === 0 && <p style={{ color: "#666" }}>No listings yet. <Link to="/post" style={{ color: "#c0392b" }}>Post something!</Link></p>}
+        {items.length === 0 && (
+          <div className="empty-state">
+            <img src={emptyDashboard} alt="No listings" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
+            <div style={{ fontWeight: 500, marginBottom: 8 }}>You haven’t posted anything yet</div>
+            <div style={{ color: '#888', marginBottom: 16 }}>Ready to make your first listing?</div>
+            <Link to="/post" style={{ textDecoration: 'none' }}>
+              <Button style="btn-primary">Create your first listing</Button>
+            </Link>
+          </div>
+        )}
         {items.map(item => (
           <Link key={item.id} to={`/items/${item.id}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f0f0f0", color: "inherit" }}>
             <span>{item.title}</span>
@@ -46,7 +57,7 @@ export default function Dashboard() {
 
       <div className="card">
         <h3 style={{ marginTop: 0 }}>Messages</h3>
-        {conversations.length === 0 && <p style={{ color: "#666" }}>No messages yet.</p>}
+        {conversations.length === 0 && <p className="empty-state">No messages yet.</p>}
         {conversations.map(c => (
           <Link key={c.id} to="/messages" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f0f0f0", color: "inherit" }}>
             <div>

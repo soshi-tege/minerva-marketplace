@@ -41,13 +41,13 @@ export default function ItemCard({ item }) {
         <img src={itemImageSrc(item.image_url)} alt={item.title} style={{ width: "100%", height: "160px", objectFit: "cover", borderRadius: "8px" }} />
         <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{item.title}</h3>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontWeight: 700, fontSize: "15px", color: "#c0392b" }}>{price}</span>
-          <span style={{ fontSize: "12px", fontWeight: 600, color: conditionColor, background: conditionColor + "18", padding: "2px 8px", borderRadius: "20px" }}>
+          <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "#c0392b" }}>{price}</span>
+          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: conditionColor, background: conditionColor + "18", padding: "2px 8px", borderRadius: "20px" }}>
             {item.condition}
           </span>
         </div>
-        <p style={{ margin: 0, fontSize: "13px", color: "#666" }}>📍 {item.location || "Unknown location"}</p>
-        {item.category && <p style={{ margin: 0, fontSize: "12px", color: "#999" }}>{item.category}</p>}
+        <p style={{ margin: 0, fontSize: "0.95rem", color: "#666" }}>📍 {item.location || "Unknown location"}</p>
+        {item.category && <p style={{ margin: 0, fontSize: "0.85rem", color: "#999" }}>{item.category}</p>}
       </div>
     </Link>
   );
