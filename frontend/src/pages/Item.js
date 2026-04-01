@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
-
-const API_BASE = "http://localhost:5001/api";
+import API_BASE, { formatPriceCents, itemImageSrc } from "../config";
 const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
@@ -16,6 +15,9 @@ export default function Item() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [editError, setEditError] = useState("");
 
   const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
   const token = storedUser?.token;
@@ -39,16 +41,85 @@ export default function Item() {
   };
 
   const handleSave = async () => {
+    if (!token) return;
+    setEditError("");
     setSaving(true);
-    const res = await fetch(`${API_BASE}/items/${itemID}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ ...form, price_cents: Math.round(form.price * 100) }),
+    try {
+      const res = await fetch(`${API_BASE}/items/${itemID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ...form, price_cents: Math.round(form.price * 100) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setItem(data);
+        setEditing(false);
+      } else {
+        setEditError(data.error || "Could not save changes. Please try again.");
+      }
+    } catch {
+      setEditError("Could not save changes. Please check your connection and try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStartEditing = () => {
+    if (!item) return;
+    setEditError("");
+    setForm({
+      title: item.title || "",
+      category: item.category || CATEGORIES[0],
+      price: (item.price || 0) / 100,
+      condition: item.condition || CONDITIONS[0],
+      location: item.location || "",
+      description: item.description || "",
+      status: item.status || "active",
     });
-    const data = await res.json();
-    setItem(data);
-    setEditing(false);
-    setSaving(false);
+    setEditing(true);
+  };
+
+  const handleMarkAsSold = async () => {
+    if (!token) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_BASE}/items/${itemID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: "sold" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setItem(data);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!token) return;
+    const confirmed = window.confirm("Delete this listing? This action cannot be undone.");
+    if (!confirmed) return;
+
+    setDeleteError("");
+    setDeleting(true);
+    try {
+      const res = await fetch(`${API_BASE}/items/${itemID}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        navigate("/dashboard");
+      } else {
+        const payload = await res.json().catch(() => ({}));
+        setDeleteError(payload.error || "Could not delete listing. Please try again.");
+      }
+    } catch {
+      setDeleteError("Could not delete listing. Please check your connection and try again.");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) return <Body><p>Loading...</p></Body>;
@@ -84,23 +155,52 @@ export default function Item() {
               <option value="reserved">Reserved</option>
               <option value="sold">Sold</option>
             </select>
+            {editError && (
+              <p style={{ color: "#c0392b", marginBottom: 12 }}>{editError}</p>
+            )}
             <div style={{ display: "flex", gap: 10 }}>
               <Button onClick={handleSave} style="btn-primary">{saving ? "Saving..." : "Save changes"}</Button>
-              <Button onClick={() => setEditing(false)}>Cancel</Button>
+              <Button onClick={() => { setEditing(false); setEditError(""); }}>Cancel</Button>
             </div>
           </>
         ) : (
           <>
+            <img
+              src={itemImageSrc(item.image_url)}
+              alt=""
+              style={{
+                width: "100%",
+                maxHeight: 280,
+                objectFit: "cover",
+                borderRadius: 8,
+                marginBottom: 16,
+              }}
+            />
             <Heading level={2}>{item.title}</Heading>
-            <p><strong>${(item.price / 100).toFixed(2)} {item.currency}</strong> · {item.condition}</p>
+            <p><strong>{formatPriceCents(item.price)}</strong> · {item.condition}</p>
             <p>{item.description}</p>
             <p style={{ color: "#666", fontSize: "0.9rem" }}>📍 {item.location}</p>
             <p style={{ fontSize: "13px", color: item.status === "active" ? "#27ae60" : "#888", fontWeight: 600, textTransform: "capitalize" }}>Status: {item.status}</p>
+            {deleteError && (
+              <p style={{ color: "#c0392b", marginTop: 8 }}>{deleteError}</p>
+            )}
             <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
               {isSeller ? (
-                <Button onClick={() => setEditing(true)} style="btn-primary">Edit listing</Button>
+                <>
+                  <Button onClick={handleStartEditing} style="btn-primary">Edit listing</Button>
+                  {item.status !== "sold" && (
+                    <Button onClick={handleMarkAsSold}>
+                      {saving ? "Updating..." : "Mark as sold"}
+                    </Button>
+                  )}
+                  <Button onClick={handleDelete} style="btn-danger">
+                    {deleting ? "Deleting..." : "Delete listing"}
+                  </Button>
+                </>
               ) : (
-                <Button onClick={handleContact} style="btn-primary">Contact Seller</Button>
+                item.status !== "sold" && (
+                  <Button onClick={handleContact} style="btn-primary">Contact Seller</Button>
+                )
               )}
             </div>
           </>

@@ -5,7 +5,7 @@ import Body from "../components/Body";
 import Heading from "../components/Heading";
 import ItemCard from "../components/ItemCard";
 
-const API_BASE = "http://localhost:5001/api";
+import API_BASE from "../config";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ active: 0, sold: 0, messages: 0 });

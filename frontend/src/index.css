@@ -77,6 +77,15 @@ header {
     color: white;
 }
 
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
 .nav-links {
     display: flex;
     gap: 16px;
