@@ -13,7 +13,7 @@ export default function Home() {
             <button className="btn-primary home-btn">Browse items</button>
           </Link>
           <Link to="/post" className="home-btn-link">
-            <button className="home-btn" style={{ background: "#eee" }}>Post an item</button>
+            <button className="home-btn" style={{ background: "#eee", color: "#000000" }}>Post an item</button>
           </Link>
         </div>
       </section>

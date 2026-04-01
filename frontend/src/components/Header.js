@@ -29,7 +29,7 @@ export default function Header() {
           ) : (
             <>
               <NavLink to="/login">Log in</NavLink>
-              <NavLink to="/signup" className="btn-primary">Sign up</NavLink>
+              <NavLink to="/signup">Sign up</NavLink>
             </>
           )}
         </div>
