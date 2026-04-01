@@ -1,13 +1,7 @@
-import { Container, Stack } from "react-bootstrap"
-
 export default function Body({ children }) {
     return (
-        <Container>
-            <Stack direction="horizontal" className="Body">
-                <Container>
-                    {children}
-                </Container>
-            </Stack>
-        </Container>
+        <div className="Body" style={{ width: "100%", maxWidth: 1100, margin: "0 auto", padding: 24 }}>
+            {children}
+        </div>
     )
 }
