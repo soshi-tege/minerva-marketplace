@@ -1,7 +1,7 @@
-import API_BASE from "../config";
 import React, { useEffect, useState } from "react";
 import ItemCard from "../components/ItemCard";
 import Button from "../components/Button";
+import API_BASE from "../config";
 const CATEGORIES = ["All", "Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
 const SORTS = [
   { label: "Newest", value: "newest" },
@@ -14,6 +14,7 @@ export default function Items() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("newest");
   const [listingType, setListingType] = useState("offering");
@@ -21,13 +22,17 @@ export default function Items() {
   function fetchItems(params = {}) {
     setLoading(true);
     setError("");
-    const query = new URLSearchParams({
-      search: params.search ?? search,
-      category: params.category ?? (category === "All" ? "" : category),
+    const queryParams = {
+      q: params.search ?? submittedSearch,
       sort: params.sort ?? sort,
       listing_type: params.listingType ?? listingType
-    });
-    fetch(`http://127.0.0.1:5001/api/items?${query.toString()}`)
+    };
+    const selectedCategory = params.category ?? category;
+    if (selectedCategory !== "All") {
+      queryParams.category = selectedCategory;
+    }
+    const query = new URLSearchParams(queryParams);
+    fetch(`${API_BASE}/items?${query.toString()}`)
       .then(res => res.json())
       .then(data => { setItems(data.items || data || []); setLoading(false); })
       .catch(() => { setError("Could not load items."); setLoading(false); });
@@ -36,14 +41,14 @@ export default function Items() {
   useEffect(() => {
     fetchItems();
     // eslint-disable-next-line
-  }, [search, category, sort, listingType]);
+  }, [submittedSearch, category, sort, listingType]);
 
   function handleSearchChange(e) {
     setSearch(e.target.value);
   }
   function handleSearchSubmit(e) {
     e.preventDefault();
-    fetchItems({ search: e.target.search.value });
+    setSubmittedSearch(search);
   }
   function handleCategoryChange(e) {
     setCategory(e.target.value);
