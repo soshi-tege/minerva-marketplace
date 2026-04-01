@@ -1,13 +1,12 @@
+import API_BASE from "../config";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
-import { useAuth } from "../context/AuthContext";
 
 export default function Post() {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const [form, setForm] = useState({
     title: "",
@@ -17,6 +16,7 @@ export default function Post() {
     pickupBy: "",
     description: "",
   });
+  const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -33,26 +33,31 @@ export default function Post() {
     setLoading(true);
 
     try {
-      const payload = {
-        title: form.title,
-        category: form.category,
-        location: form.location,
-        description: form.description,
-        pickup_by: form.pickupBy || null,
-        // basic price handling: empty or "free" -> 0
-        price_cents:
-          form.price.trim().toLowerCase() === "free" || form.price.trim() === ""
+      const priceCents =
+        form.price.trim().toLowerCase() === "free" || form.price.trim() === ""
+          ? 0
+          : isNaN(Number(form.price))
             ? 0
-            : isNaN(Number(form.price)) ? 0 : Math.round(Number(form.price) * 100),
-        // TODO: seller/user linkage when backend is ready
-        seller_email: user?.email || null,
-      };
+            : Math.round(Number(form.price) * 100);
 
-      const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}"); const token = storedUser?.token;
-      const res = await fetch("http://127.0.0.1:5001/api/items", {
+      const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
+      const token = storedUser?.token;
+
+      const body = new FormData();
+      body.append("title", form.title);
+      body.append("category", form.category);
+      body.append("location", form.location || "");
+      body.append("description", form.description || "");
+      body.append("pickup_by", form.pickupBy || "");
+      body.append("price_cents", String(priceCents));
+      if (imageFile) {
+        body.append("image", imageFile);
+      }
+
+      const res = await fetch(`${API_BASE}/items`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify(payload),
+        headers: { Authorization: `Bearer ${token}` },
+        body,
       });
 
       const data = await res.json();
@@ -145,6 +150,16 @@ export default function Post() {
           placeholder="Any details buyers should know"
           value={form.description}
           onChange={handleChange}
+        />
+
+        <label htmlFor="image">Photo (optional)</label>
+        <input
+          id="image"
+          name="image"
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          style={{ marginBottom: 8 }}
         />
 
         <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>

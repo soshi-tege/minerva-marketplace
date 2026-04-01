@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Body from "../components/Body";
 import Heading from "../components/Heading";
 
-const API_BASE = "http://localhost:5001/api";
+import API_BASE from "../config";
 
 export default function Dashboard() {
   const [items, setItems] = useState([]);

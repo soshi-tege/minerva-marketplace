@@ -1,3 +1,4 @@
+import API_BASE from "../config";
 import React, { useEffect, useState } from "react";
 import ItemCard from "../components/ItemCard";
 import Button from "../components/Button";
