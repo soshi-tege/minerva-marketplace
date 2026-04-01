@@ -5,7 +5,7 @@ import Heading from "../components/Heading";
 import Button from "../components/Button";
 import emptyDashboard from "../assets/empty-dashboard.svg";
 
-const API_BASE = "http://localhost:5001/api";
+import API_BASE from "../config";
 
 export default function Dashboard() {
   const [items, setItems] = useState([]);

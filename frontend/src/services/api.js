@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:5001/api";
+import API_BASE from "../config";
+const BASE_URL = API_BASE;
 
 const getToken = () => { const u = JSON.parse(localStorage.getItem("mm_auth_user") || "{}"); return u?.token; };
 

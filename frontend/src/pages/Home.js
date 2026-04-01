@@ -8,12 +8,12 @@ export default function Home() {
         <p style={{ marginTop: 8, maxWidth: 520 }}>
           Minerva Marketplace provides an easy, sustainable solution for buying and selling items between Minervans in your city.
         </p>
-        <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap", flexDirection: "column" }}>
-          <Link to="/items" style={{ width: "100%" }}>
-            <button className="btn-primary" style={{ width: "100%" }}>Browse items</button>
+        <div className="home-btn-row">
+          <Link to="/items" className="home-btn-link">
+            <button className="btn-primary home-btn">Browse items</button>
           </Link>
-          <Link to="/post" style={{ width: "100%" }}>
-            <button style={{ background: "#eee", width: "100%" }}>Post an item</button>
+          <Link to="/post" className="home-btn-link">
+            <button className="home-btn" style={{ background: "#eee" }}>Post an item</button>
           </Link>
         </div>
       </section>
