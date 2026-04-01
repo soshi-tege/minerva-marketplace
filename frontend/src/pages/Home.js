@@ -23,7 +23,7 @@ export default function Home() {
           <p style={{ marginTop: 8 }}>Only students can list and buy, so you know who you are dealing with.</p>
         </div>
         <div className="card">
-          <h3>Keep it on campus</h3>
+          <h3>Keep it safe</h3>
           <p style={{ marginTop: 8 }}>Meet up in familiar spots.</p>
         </div>
         <div className="card">
