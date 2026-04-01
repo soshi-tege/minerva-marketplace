@@ -200,7 +200,7 @@ header {
 
 .nav-links a.active,
 .nav-auth a.active {
-    background: #f3f3f3;
+    background: #c0392b;
 }
 
 @media (max-width: 768px) {
