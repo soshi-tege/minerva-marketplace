@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 const CATEGORIES = ["All", "Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
 const SORTS = [
     { label: "Newest", value: "newest" },
+    { label: "Oldest", value: "oldest" },
     { label: "Price (low → high)", value: "price_asc" },
     { label: "Price (high → low)", value: "price_desc" }
 ];

@@ -1,5 +1,7 @@
-from flask import Blueprint, jsonify, request
+import os
+from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from werkzeug.utils import secure_filename
 from ..services import item_service
 
 items_bp = Blueprint("items", __name__, url_prefix="/api")
@@ -33,10 +35,29 @@ def create_item():
     except Exception:
         return jsonify({"error": "Unauthorized"}), 401
 
-    data = request.get_json()
+    # Handle both JSON and FormData (multipart) submissions
+    if request.content_type and "multipart" in request.content_type:
+        data = request.form.to_dict()
+        if "price_cents" in data:
+            data["price_cents"] = int(data["price_cents"])
+    else:
+        data = request.get_json()
+
     errors = item_service.validate_item_data(data, require_all=True)
     if errors:
         return jsonify({"error": "Validation failed", "fields": errors}), 400
+
+    # Handle image upload
+    image_url = None
+    if "image" in request.files:
+        file = request.files["image"]
+        if file.filename:
+            upload_dir = os.path.join(current_app.root_path, "static", "uploads")
+            os.makedirs(upload_dir, exist_ok=True)
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(upload_dir, filename))
+            image_url = f"/static/uploads/{filename}"
+    data["image_url"] = image_url
 
     item = item_service.create_item(seller_id, data)
     return jsonify(item.to_dict()), 201
