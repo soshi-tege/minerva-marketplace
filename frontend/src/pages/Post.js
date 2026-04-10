@@ -42,6 +42,11 @@ export default function Post() {
 
       const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
       const token = storedUser?.token;
+      if (!token) {
+        setError("Please log in before posting an item.");
+        setLoading(false);
+        return;
+      }
 
       const body = new FormData();
       body.append("title", form.title);
