@@ -42,22 +42,28 @@ export default function Post() {
 
       const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
       const token = storedUser?.token;
-
-      const body = new FormData();
-      body.append("title", form.title);
-      body.append("category", form.category);
-      body.append("location", form.location || "");
-      body.append("description", form.description || "");
-      body.append("pickup_by", form.pickupBy || "");
-      body.append("price_cents", String(priceCents));
-      if (imageFile) {
-        body.append("image", imageFile);
+      if (!token) {
+        setError("Please log in before posting an item.");
+        setLoading(false);
+        return;
       }
+
+      const payload = {
+        title: form.title,
+        category: form.category,
+        location: form.location || "",
+        description: form.description || "",
+        price_cents: priceCents,
+        listing_type: "offering",
+      };
 
       const res = await fetch(`${API_BASE}/items`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -161,6 +167,12 @@ export default function Post() {
           onChange={(e) => setImageFile(e.target.files?.[0] || null)}
           style={{ marginBottom: 8 }}
         />
+
+        {imageFile && (
+          <p style={{ color: "#666", fontSize: 13, marginTop: 4 }}>
+            Image upload is not enabled in this MVP snapshot yet.
+          </p>
+        )}
 
         <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
           <Button style="btn-primary">
