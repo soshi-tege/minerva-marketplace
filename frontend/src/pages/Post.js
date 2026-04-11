@@ -4,16 +4,13 @@ import { useNavigate } from "react-router-dom";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
-import { useAuth } from "../context/AuthContext";
 
 const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
 export default function Post() {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
-  // Step 1: user picks listing type first
   const [listingType, setListingType] = useState(null); // "offering" | "request"
 
   const [form, setForm] = useState({
@@ -27,13 +24,13 @@ export default function Post() {
   });
 
   const [fieldErrors, setFieldErrors] = useState({});
+  const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    // Clear the error for this field as the user types
     setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -54,7 +51,10 @@ export default function Post() {
     }
 
     if (listingType === "request") {
-      if (form.budget.trim() !== "" && (isNaN(Number(form.budget)) || Number(form.budget) < 0)) {
+      if (
+        form.budget.trim() !== "" &&
+        (isNaN(Number(form.budget)) || Number(form.budget) < 0)
+      ) {
         errors.budget = "Budget must be a valid number.";
       }
     }
@@ -78,37 +78,44 @@ export default function Post() {
       const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
       const token = storedUser?.token;
 
-      // Build price_cents: for offerings use price field, for requests use budget (optional)
-      let price_cents = 0;
-      if (listingType === "offering") {
-        price_cents = Math.round(Number(form.price) * 100);
-      } else if (form.budget.trim() !== "") {
-        price_cents = Math.round(Number(form.budget) * 100);
+      if (!token) {
+        setError("Please log in before posting an item.");
+        setLoading(false);
+        return;
       }
 
-      const payload = {
-        title: form.title.trim(),
-        category: form.category,
-        location: form.location.trim(),
-        description: form.description.trim(),
-        listing_type: listingType,
-        price_cents,
-        ...(listingType === "offering" && { condition: form.condition }),
-      };
+      let priceCents = 0;
+      if (listingType === "offering") {
+        priceCents = Math.round(Number(form.price) * 100);
+      } else if (form.budget.trim() !== "") {
+        priceCents = Math.round(Number(form.budget) * 100);
+      }
+
+      const body = new FormData();
+      body.append("title", form.title.trim());
+      body.append("category", form.category);
+      body.append("location", form.location.trim());
+      body.append("description", form.description.trim());
+      body.append("listing_type", listingType);
+      body.append("price_cents", String(priceCents));
+
+      if (listingType === "offering") {
+        body.append("condition", form.condition);
+      }
+
+      if (imageFile) {
+        body.append("image", imageFile);
+      }
 
       const res = await fetch(`${API_BASE}/items`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+        headers: { Authorization: `Bearer ${token}` },
+        body,
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        // If backend returns field-level errors, show them
         if (data.fields) {
           setFieldErrors(data.fields);
         } else {
@@ -124,7 +131,6 @@ export default function Post() {
     }
   };
 
-  // ── Step 1: Pick listing type ──────────────────────────────
   if (!listingType) {
     return (
       <Body>
@@ -142,21 +148,24 @@ export default function Post() {
             onClick={() => setListingType("request")}
             style={{ padding: "20px", fontSize: "1.1rem" }}
           >
-            🔍 I'm looking for something
+            🔍 I&apos;m looking for something
           </button>
         </div>
       </Body>
     );
   }
 
-  // ── Step 2: The form ───────────────────────────────────────
   const isOffering = listingType === "offering";
 
   return (
     <Body>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
         <button
-          onClick={() => { setListingType(null); setFieldErrors({}); setError(""); }}
+          onClick={() => {
+            setListingType(null);
+            setFieldErrors({});
+            setError("");
+          }}
           style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "0.9rem" }}
         >
           ← Back
@@ -169,7 +178,6 @@ export default function Post() {
       <form className="card" onSubmit={handleSubmit} noValidate>
         {error && <p style={{ color: "#c0392b", marginBottom: 12 }}>{error}</p>}
 
-        {/* Title */}
         <label htmlFor="title">{isOffering ? "Item name" : "What are you looking for?"} *</label>
         <input
           id="title"
@@ -180,27 +188,32 @@ export default function Post() {
         />
         {fieldErrors.title && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.title}</p>}
 
-        {/* Category */}
         <label htmlFor="category">Category *</label>
         <select id="category" name="category" value={form.category} onChange={handleChange}>
           <option value="">Select a category</option>
-          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
         </select>
         {fieldErrors.category && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.category}</p>}
 
-        {/* Condition — offerings only */}
         {isOffering && (
           <>
             <label htmlFor="condition">Condition *</label>
             <select id="condition" name="condition" value={form.condition} onChange={handleChange}>
               <option value="">Select condition</option>
-              {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+              {CONDITIONS.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
             {fieldErrors.condition && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.condition}</p>}
           </>
         )}
 
-        {/* Price — offerings only */}
         {isOffering && (
           <>
             <label htmlFor="price">Price ($) *</label>
@@ -215,10 +228,11 @@ export default function Post() {
           </>
         )}
 
-        {/* Budget — requests only (optional) */}
         {!isOffering && (
           <>
-            <label htmlFor="budget">Maximum budget ($) <span style={{ color: "#888" }}>(optional)</span></label>
+            <label htmlFor="budget">
+              Maximum budget ($) <span style={{ color: "#888" }}>(optional)</span>
+            </label>
             <input
               id="budget"
               name="budget"
@@ -230,7 +244,6 @@ export default function Post() {
           </>
         )}
 
-        {/* Location */}
         <label htmlFor="location">Location *</label>
         <input
           id="location"
@@ -241,7 +254,6 @@ export default function Post() {
         />
         {fieldErrors.location && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.location}</p>}
 
-        {/* Description */}
         <label htmlFor="description">Description</label>
         <textarea
           id="description"
@@ -250,6 +262,16 @@ export default function Post() {
           placeholder={isOffering ? "Any details buyers should know" : "Describe what you're looking for"}
           value={form.description}
           onChange={handleChange}
+        />
+
+        <label htmlFor="image">Photo (optional)</label>
+        <input
+          id="image"
+          name="image"
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          style={{ marginBottom: 8 }}
         />
 
         <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
