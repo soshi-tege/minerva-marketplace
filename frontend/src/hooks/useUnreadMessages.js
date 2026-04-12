@@ -45,7 +45,9 @@ export function useUnreadMessages(isAuthenticated) {
             };
 
             setNotifications((prev) => [...prev, notification]);
-            setTimeout(() => dismiss(id), 4000);
+            setTimeout(() => {
+              setNotifications((prev) => prev.filter((n) => n.id !== id));
+            }, 5000);
           }
         });
 
@@ -61,7 +63,7 @@ export function useUnreadMessages(isAuthenticated) {
 
     const interval = setInterval(poll, 5000);
     return () => clearInterval(interval);
-  }, [isAuthenticated, location.pathname, dismiss]);
+  }, [isAuthenticated, location.pathname]);
 
   return { notifications, navigateToMessages };
 }

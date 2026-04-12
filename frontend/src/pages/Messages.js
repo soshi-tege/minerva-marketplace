@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { getConversations, getMessages, sendMessage, markConversationRead } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import Button from "../components/Button";
+import emptyMessages from "../assets/empty-messages.svg";
+import { Link } from "react-router-dom";
 
 export default function Messages() {
   const { user } = useAuth();
@@ -11,24 +14,19 @@ export default function Messages() {
   const [input, setInput] = useState("");
   const pollingRef = useRef(null);
 
-  // Load conversations on mount
   useEffect(() => {
     getConversations().then((data) => {
       setConversations(Array.isArray(data) ? data : []);
     });
   }, []);
 
-  // Poll for new messages every 4 seconds when a conversation is open
   useEffect(() => {
     if (!selectedConvo) return;
-
     const poll = () => {
       if (document.visibilityState === "hidden") return;
       getMessages(selectedConvo.id).then(setMessages);
     };
-
-    pollingRef.current = setInterval(poll, 4000);
-
+    pollingRef.current = setInterval(poll, 5000);
     return () => clearInterval(pollingRef.current);
   }, [selectedConvo]);
 
@@ -49,7 +47,14 @@ export default function Messages() {
     <div className="container messages" style={{ display: "flex", gap: "1rem", padding: "1rem" }}>
       <div className="card conversations" style={{ width: "250px", padding: "1rem" }}>
         {conversations.length === 0 && (
-          <p style={{ color: "#666" }}>No conversations yet.</p>
+          <div className="empty-state">
+            <img src={emptyMessages} alt="No messages" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
+            <div style={{ fontWeight: 500, marginBottom: 8 }}>No messages yet</div>
+            <div style={{ color: "#888", marginBottom: 16 }}>You have not chatted with anyone yet.</div>
+            <Link to="/items" style={{ textDecoration: "none" }}>
+              <Button style="btn-primary">Start browsing items</Button>
+            </Link>
+          </div>
         )}
         {conversations.map((c) => (
           <div

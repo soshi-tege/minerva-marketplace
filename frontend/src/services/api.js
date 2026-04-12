@@ -41,8 +41,16 @@ export const getUnreadCount = async () => {
 };
 
 export const markConversationRead = async (convoId) => {
-  await fetch(`${API_BASE}/messages/conversations/${convoId}/read`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${getToken()}` },
-  });
+  try {
+    await fetch(`${API_BASE}/messages/conversations/${convoId}/read`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    } else {
+      console.error(`Unexpected error: ${error}`);
+    }
+  }
 };

@@ -1,17 +1,47 @@
 from datetime import datetime, timezone
+from sqlalchemy import func, or_
+from sqlalchemy.orm import aliased, joinedload
+
 from ..models import db, Conversation, Message, Item
+
+
+def _latest_message_subquery():
+    """Return latest message id per conversation."""
+    return (
+        db.session.query(
+            Message.conversation_id.label("conversation_id"),
+            func.max(Message.id).label("last_message_id"),
+        )
+        .group_by(Message.conversation_id)
+        .subquery()
+    )
 
 
 def get_conversations(user_id):
     """Get all conversations for a user (as buyer or seller)."""
-    convos = Conversation.query.filter(
-        (Conversation.buyer_id == user_id) | (Conversation.seller_id == user_id)
-    ).all()
+    latest_message_sq = _latest_message_subquery()
+    last_message = aliased(Message)
+
+    convos = (
+        db.session.query(Conversation, last_message)
+        .outerjoin(
+            latest_message_sq,
+            latest_message_sq.c.conversation_id == Conversation.id,
+        )
+        .outerjoin(last_message, last_message.id == latest_message_sq.c.last_message_id)
+        .filter(or_(Conversation.buyer_id == user_id, Conversation.seller_id == user_id))
+        .options(
+            joinedload(Conversation.item),
+            joinedload(Conversation.buyer),
+            joinedload(Conversation.seller),
+        )
+        .order_by(Conversation.created_at.desc())
+        .all()
+    )
 
     result = []
-    for c in convos:
+    for c, last_msg in convos:
         other = c.seller if c.buyer_id == user_id else c.buyer
-        last_msg = c.messages[-1] if c.messages else None
         result.append({
             "id": c.id,
             "item_id": c.item_id,
