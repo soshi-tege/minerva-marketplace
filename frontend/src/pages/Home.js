@@ -4,20 +4,20 @@ export default function Home() {
   return (
     <div>
       <section className="card" style={{ marginBottom: 32 }}>
-        <h1>Buy and sell with other Minervans in your city!</h1>
+        <h1 style={{ fontSize: "1.5rem" }}>Buy and sell with other Minervans in your city!</h1>
         <p style={{ marginTop: 8, maxWidth: 520 }}>
           Minerva Marketplace provides an easy, sustainable solution for buying and selling items between Minervans in your city.
         </p>
-        <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <Link to="/items">
-            <button className="btn-primary">Browse items</button>
+        <div className="home-btn-row">
+          <Link to="/items" className="home-btn-link">
+            <button className="btn-primary home-btn">Browse items</button>
           </Link>
-          <Link to="/post">
-            <button style={{ background: "#eee" }}>Post an item</button>
+          <Link to="/post" className="home-btn-link">
+            <button className="home-btn" style={{ background: "#eee", color: "#000000" }}>Post an item</button>
           </Link>
         </div>
       </section>
-      <section className="grid">
+      <section className="grid" style={{ gridTemplateColumns: "1fr", gap: 14 }}>
         <div className="card">
           <h3>For students, by students</h3>
           <p style={{ marginTop: 8 }}>Only students can list and buy, so you know who you are dealing with.</p>
