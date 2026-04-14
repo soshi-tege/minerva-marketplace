@@ -231,3 +231,19 @@ def test_get_cities_empty(client):
     resp = client.get("/api/cities")
     data = resp.get_json()
     assert data == []
+
+
+# ── seller profile tests ──────────────────────────────────────
+
+def test_item_includes_seller_info(client):
+    token = _register_and_get_token(client)
+    item = _create_item(client, token)
+
+    resp = client.get(f"/api/items/{item['id']}")
+    data = resp.get_json()
+    assert "seller" in data
+    assert data["seller"]["first_name"] == "Seller"
+    assert data["seller"]["last_name"] == "One"
+    assert data["seller"]["city"] == "Tokyo"
+    assert data["seller"]["cohort"] == "M28"
+    assert "created_at" in data["seller"]

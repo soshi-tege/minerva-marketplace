@@ -28,6 +28,7 @@ def get_items():
 
 @items_bp.get("/items/<int:item_id>")
 def get_item(item_id):
+    """Return a single item by ID, including seller profile info."""
     item = item_service.get_item(item_id)
     return jsonify(item.to_dict())
 
