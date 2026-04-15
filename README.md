@@ -55,10 +55,10 @@ A peer-to-peer marketplace for Minerva University students to buy, sell, and req
 │  │  GET /cities      │     │  get_cities()          │   │
 │  ├───────────────────┤     ├───────────────────────┤   │
 │  │ messages.py       │────►│ message_service.py     │   │
-│  │  GET  /convos     │     │  get_conversations()   │   │
-│  │  POST /convos     │     │  start_conversation()  │   │
-│  │  GET  /convos/:id │     │  get_messages()        │   │
-│  │  POST /convos/:id │     │  send_message()        │   │
+│  │  GET  /conversations     │     │  get_conversations()   │   │
+│  │  POST /conversations     │     │  start_conversation()  │   │
+│  │  GET  /conversations/:id │     │  get_messages()        │   │
+│  │  POST /conversations/:id │     │  send_message()        │   │
 │  │  GET /unread-count│     │  get_unread_count()    │   │
 │  ├───────────────────┤     └───────────────────────┘   │
 │  │ dashboard.py      │                                  │
@@ -82,7 +82,7 @@ A peer-to-peer marketplace for Minerva University students to buy, sell, and req
 
 The backend follows a three-layer architecture:
 
-- **Routes** handle HTTP only: parse requests, check auth, return JSON responses. No business logic.
+- **Routes** handle HTTP: parse requests, check auth, return JSON responses. Most routes delegate business logic to services; `dashboard.py` is a current exception that queries the Item model directly alongside service calls.
 - **Services** contain all business logic: validation, querying, filtering, sorting. No HTTP or Flask request/response objects.
 - **Models** define the database schema via SQLAlchemy ORM. Provide `to_dict()` serialization methods.
 
@@ -120,7 +120,7 @@ The frontend separates concerns similarly:
 │ city             │   │ │ currency (default "USD")     │
 │ cohort           │   │ │ category                     │
 │ created_at       │   │ │ condition                    │
-│ updated_at       │   │ │ listing_type (offering/req)  │
+│ updated_at       │   │ │ listing_type (offering/request)│
 └──────────────────┘   │ │ status (active/sold)         │
                        │ │ location                     │
 ┌──────────────────┐   │ │ image_url                    │
@@ -149,7 +149,7 @@ The frontend separates concerns similarly:
 ### Items (`/api`)
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| GET | `/api/items` | No | List items (supports `?q=`, `?category=`, `?city=`, `?listing_type=`, `?sort=`, `?page=`, `?per_page=`) |
+| GET | `/api/items` | No | List items (supports `?q=`, `?category=`, `?city=`, `?listing_type=`, `?sort=newest\|oldest\|price_asc\|price_desc`, `?page=`, `?per_page=`) |
 | GET | `/api/items/:id` | No | Get single item with seller info |
 | POST | `/api/items` | JWT | Create item (JSON or multipart with image) |
 | PUT | `/api/items/:id` | JWT | Update item (owner only) |
@@ -182,8 +182,7 @@ The frontend separates concerns similarly:
 |----------|---------|-------------|
 | `DATABASE_URL` | `sqlite:///app.db` | Database connection string |
 | `JWT_SECRET_KEY` | `dev-secret-change-in-production` | Secret for signing JWTs |
-| `REACT_APP_API_URL` | `http://localhost:5001/api` | Frontend API base URL |
-| `REACT_APP_API_ORIGIN` | `http://127.0.0.1:5001` | Backend origin for image URLs |
+| `REACT_APP_API_ORIGIN` | `http://127.0.0.1:5001` | Backend origin (used to build API_BASE and image URLs) |
 
 ## Local Development Setup
 
@@ -203,7 +202,7 @@ cd ..
 python -m backend.app
 ```
 
-The backend runs on http://localhost:5001. The database file (`instance/app.db`) is created automatically on first run.
+The backend runs on http://localhost:5001. The database file (`instance/app.db`) is created automatically in the `instance/` directory on first run.
 
 ### Frontend
 
@@ -213,7 +212,7 @@ npm install
 npm start
 ```
 
-The frontend runs on http://localhost:3000 and proxies API calls to the backend.
+The frontend runs on http://localhost:3000 and sends API requests directly to the backend at the configured `REACT_APP_API_ORIGIN`.
 
 ### Running Both
 

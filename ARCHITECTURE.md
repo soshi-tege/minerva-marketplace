@@ -46,13 +46,14 @@
 │  │                   ROUTES (HTTP Layer)                        │   │
 │  │                                                             │   │
 │  │  Parse requests, verify JWT, return JSON.                   │   │
-│  │  No business logic. No database queries.                    │   │
+│  │  Business logic delegated to services. dashboard.py is a    │   │
+│  │  current exception that also queries Item directly.         │   │
 │  │                                                             │   │
 │  │  auth.py         items.py        messages.py  dashboard.py  │   │
-│  │  POST /signup    GET  /items     GET  /convos GET /dashboard│   │
-│  │  POST /login     POST /items     POST /convos               │   │
-│  │                  PUT  /items/:id GET  /convos/:id           │   │
-│  │                  DELETE /items/:id POST /convos/:id         │   │
+│  │  POST /signup    GET  /items     GET  /conversations GET /me/dash  │   │
+│  │  POST /login     POST /items     POST /conversations               │   │
+│  │                  PUT  /items/:id GET  /conversations/:id           │   │
+│  │                  DELETE /items/:id POST /conversations/:id         │   │
 │  │                  GET /categories GET /unread-count           │   │
 │  │                  GET /cities                                 │   │
 │  └────────────────────────┬────────────────────────────────────┘   │
@@ -100,7 +101,7 @@
 
 ## Key Design Decisions
 
-**Service layer pattern**: Routes never touch the database directly. This makes the business logic testable in isolation (no Flask app context needed for unit tests), and multiple routes can share the same service functions (e.g., `dashboard.py` reuses `message_service.get_unread_count()`).
+**Service layer pattern**: Routes generally delegate all database access to service functions, making business logic testable in isolation and reusable across routes (e.g., `dashboard.py` reuses `message_service.get_unread_count()`). `dashboard.py` is a current exception that also queries the Item model directly alongside service calls.
 
 **App factory**: `create_app()` reads config from environment variables, making the same codebase deployable to dev/staging/production by changing only env vars. No code changes needed per environment.
 

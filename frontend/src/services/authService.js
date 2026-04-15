@@ -1,7 +1,7 @@
 import API_BASE from '../config';
 
 export const registerUser = async ({ email, password, first_name, last_name }) => {
-    const res = await fetch(`${API_BASE}/auth/register`, {
+    const res = await fetch(`${API_BASE}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, first_name, last_name }),
