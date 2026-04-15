@@ -28,6 +28,7 @@ def get_items():
 
 @items_bp.get("/items/<int:item_id>")
 def get_item(item_id):
+    """Return a single item by ID, including seller profile info."""
     item = item_service.get_item(item_id)
     return jsonify(item.to_dict())
 
@@ -116,3 +117,9 @@ def delete_item(item_id):
 @items_bp.get("/categories")
 def get_categories():
     return jsonify(item_service.get_categories())
+
+
+@items_bp.get("/cities")
+def get_cities():
+    """Return a sorted list of distinct cities where items are listed."""
+    return jsonify(item_service.get_cities())
