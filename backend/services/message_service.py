@@ -1,46 +1,17 @@
-from sqlalchemy import func, or_
-from sqlalchemy.orm import aliased, joinedload
-
+from datetime import datetime, timezone
 from ..models import db, Conversation, Message, Item
-
-
-def _latest_message_subquery():
-    """Return latest message id per conversation."""
-    return (
-        db.session.query(
-            Message.conversation_id.label("conversation_id"),
-            func.max(Message.id).label("last_message_id"),
-        )
-        .group_by(Message.conversation_id)
-        .subquery()
-    )
 
 
 def get_conversations(user_id):
     """Get all conversations for a user (as buyer or seller)."""
-    latest_message_sq = _latest_message_subquery()
-    last_message = aliased(Message)
-
-    convos = (
-        db.session.query(Conversation, last_message)
-        .outerjoin(
-            latest_message_sq,
-            latest_message_sq.c.conversation_id == Conversation.id,
-        )
-        .outerjoin(last_message, last_message.id == latest_message_sq.c.last_message_id)
-        .filter(or_(Conversation.buyer_id == user_id, Conversation.seller_id == user_id))
-        .options(
-            joinedload(Conversation.item),
-            joinedload(Conversation.buyer),
-            joinedload(Conversation.seller),
-        )
-        .order_by(Conversation.created_at.desc())
-        .all()
-    )
+    convos = Conversation.query.filter(
+        (Conversation.buyer_id == user_id) | (Conversation.seller_id == user_id)
+    ).order_by(Conversation.created_at.desc()).all()
 
     result = []
-    for c, last_msg in convos:
+    for c in convos:
         other = c.seller if c.buyer_id == user_id else c.buyer
+        last_msg = c.messages[-1] if c.messages else None
         result.append({
             "id": c.id,
             "item_id": c.item_id,
@@ -82,21 +53,21 @@ def send_message(convo_id, sender_id, body):
 
 
 def get_unread_count(user_id):
-    """Count conversations with messages the user hasn't seen.
-    Simple approach: count conversations where the last message was not sent by this user.
-    """
-    latest_message_sq = _latest_message_subquery()
-    last_message = aliased(Message)
+    """Count unread messages for a user (messages sent by others with no read_at)."""
+    count = Message.query.join(Conversation).filter(
+        ((Conversation.buyer_id == user_id) | (Conversation.seller_id == user_id)),
+        Message.sender_id != user_id,
+        Message.read_at == None
+    ).count()
+    return count
 
-    count = (
-        db.session.query(func.count(Conversation.id))
-        .join(
-            latest_message_sq,
-            latest_message_sq.c.conversation_id == Conversation.id,
-        )
-        .join(last_message, last_message.id == latest_message_sq.c.last_message_id)
-        .filter(or_(Conversation.buyer_id == user_id, Conversation.seller_id == user_id))
-        .filter(last_message.sender_id != user_id)
-        .scalar()
-    )
-    return count or 0
+
+def mark_conversation_read(convo_id, user_id):
+    """Mark all messages in a conversation as read for this user."""
+    messages = Message.query.filter_by(conversation_id=convo_id).filter(
+        Message.sender_id != user_id,
+        Message.read_at == None
+    ).all()
+    for msg in messages:
+        msg.read_at = datetime.now(timezone.utc)
+    db.session.commit()
