@@ -44,14 +44,14 @@ export default function Messages() {
   };
 
   return (
-    <div className="container messages-layout">
-      <div className="card convo-list">
+    <div className="container messages" style={{ display: "flex", gap: "1rem", padding: "1rem" }}>
+      <div className="card conversations" style={{ width: "250px", padding: "1rem" }}>
         {conversations.length === 0 && (
           <div className="empty-state">
-            <img src={emptyMessages} alt="No messages" className="empty-state-img" />
-            <div className="empty-state-title">No messages yet</div>
-            <div className="text-muted mb-12">You have not chatted with anyone yet.</div>
-            <Link to="/items">
+            <img src={emptyMessages} alt="No messages" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
+            <div style={{ fontWeight: 500, marginBottom: 8 }}>No messages yet</div>
+            <div style={{ color: "#888", marginBottom: 16 }}>You have not chatted with anyone yet.</div>
+            <Link to="/items" style={{ textDecoration: "none" }}>
               <Button style="btn-primary">Start browsing items</Button>
             </Link>
           </div>
@@ -60,38 +60,55 @@ export default function Messages() {
           <div
             key={c.id}
             onClick={() => selectConvo(c)}
-            className={`convo-item ${selectedConvo?.id === c.id ? "convo-item--selected" : ""}`}
+            style={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRadius: "6px",
+              background: selectedConvo?.id === c.id ? "#f3f3f3" : "transparent",
+              marginBottom: "4px",
+            }}
           >
-            <p className="convo-item-name">{c.other_user}</p>
-            <p className="convo-item-title">{c.item_title}</p>
+            <p style={{ margin: 0, fontWeight: 600 }}>{c.other_user}</p>
+            <p style={{ margin: 0, fontSize: "0.8rem", color: "#666" }}>{c.item_title}</p>
             {c.last_message && (
-              <p className="convo-item-preview">{c.last_message}</p>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "#999", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {c.last_message}
+              </p>
             )}
           </div>
         ))}
       </div>
 
-      <div className="card chat-area">
+      <div className="card chat" style={{ flex: 1, padding: "1rem", display: "flex", flexDirection: "column", minHeight: "400px" }}>
         {!selectedConvo ? (
-          <p className="chat-placeholder">Select a conversation.</p>
+          <p style={{ color: "#666", margin: "auto" }}>Select a conversation.</p>
         ) : (
           <>
-            <div className="chat-messages">
+            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
               {messages.map((m) => (
                 <div
                   key={m.id}
-                  className={`chat-bubble ${m.sender_id === currentUserId ? "chat-bubble--mine" : "chat-bubble--theirs"}`}
+                  style={{
+                    alignSelf: m.sender_id === currentUserId ? "flex-end" : "flex-start",
+                    background: m.sender_id === currentUserId ? "#c0392b" : "#f0f0f0",
+                    color: m.sender_id === currentUserId ? "white" : "#222",
+                    padding: "8px 12px",
+                    borderRadius: "12px",
+                    maxWidth: "70%",
+                    fontSize: "14px",
+                  }}
                 >
                   {m.body}
                 </div>
               ))}
             </div>
-            <div className="chat-input-row">
+            <div style={{ display: "flex", gap: "0.5rem" }}>
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder="Type a message..."
+                style={{ flex: 1 }}
               />
               <button onClick={handleSend} className="btn-primary">Send</button>
             </div>

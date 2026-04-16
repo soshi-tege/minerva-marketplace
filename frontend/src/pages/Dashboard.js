@@ -32,21 +32,23 @@ export default function Dashboard() {
     }, [token]);
 
     if (loading) return <Body><p>Loading...</p></Body>;
-    if (error) return <Body><p className="text-error">{error}</p></Body>;
+    if (error) return <Body><p style={{ color: "#c0392b" }}>{error}</p></Body>;
 
     return (
         <Body>
             <Heading level={2}>My Dashboard</Heading>
 
-            <div className="stats-row">
+            {/* Quick Stats */}
+            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: 24 }}>
                 <StatBox label="Active Listings" value={stats.active_count} color="#2980b9" />
                 <StatBox label="Sold Items" value={stats.sold_count} color="#27ae60" />
                 <StatBox label="Unread Messages" value={stats.unread_messages} color="#c0392b" />
             </div>
 
+            {/* Active Listings */}
             <SectionCard title="Active Listings">
                 {activeListings.length === 0 ? (
-                    <p className="text-muted">No active listings. <Link to="/post" className="text-error">Post something!</Link></p>
+                    <p style={{ color: "#666" }}>No active listings. <Link to="/post" style={{ color: "#c0392b" }}>Post something!</Link></p>
                 ) : (
                     <div className="grid">
                         {activeListings.map(item => <ItemCard key={item.id} item={item} />)}
@@ -54,9 +56,10 @@ export default function Dashboard() {
                 )}
             </SectionCard>
 
+            {/* Sold Items */}
             <SectionCard title="Sold Items">
                 {soldListings.length === 0 ? (
-                    <p className="text-muted">No sold items yet.</p>
+                    <p style={{ color: "#666" }}>No sold items yet.</p>
                 ) : (
                     <div className="grid">
                         {soldListings.map(item => <ItemCard key={item.id} item={item} />)}
@@ -64,18 +67,19 @@ export default function Dashboard() {
                 )}
             </SectionCard>
 
+            {/* Recent Messages */}
             <SectionCard title="Recent Messages">
                 {recentMessages.length === 0 ? (
-                    <p className="text-muted">No messages yet.</p>
+                    <p style={{ color: "#666" }}>No messages yet.</p>
                 ) : (
-                    <div className="recent-messages-list">
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                         {recentMessages.map(m => (
-                            <Link key={m.id} to="/messages" className="recent-message-item">
+                            <Link key={m.id} to="/messages" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f0f0f0", color: "inherit" }}>
                                 <div>
                                     <strong>{m.other_user}</strong>
-                                    <p className="recent-message-preview">{m.last_message || "No messages yet"}</p>
+                                    <p style={{ margin: 0, fontSize: "13px", color: "#666" }}>{m.last_message || "No messages yet"}</p>
                                 </div>
-                                <span className="recent-message-item-title">{m.item_title}</span>
+                                <span style={{ fontSize: "12px", color: "#999" }}>{m.item_title}</span>
                             </Link>
                         ))}
                     </div>
