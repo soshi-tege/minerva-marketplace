@@ -31,6 +31,8 @@ export default function Items() {
   const [cities, setCities] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   useEffect(() => {
     fetch(`${API_BASE}/cities`)
@@ -44,8 +46,10 @@ export default function Items() {
     if (appliedSearch) params.set("q", appliedSearch);
     if (category !== "All") params.set("category", category);
     if (city) params.set("city", city);
+    if (minPrice) params.set("min_price", String(Math.round(Number(minPrice) * 100)));
+    if (maxPrice) params.set("max_price", String(Math.round(Number(maxPrice) * 100)));
     return `${API_BASE}/items?${params}`;
-  }, [tab, appliedSearch, category, sort, city]);
+  }, [tab, appliedSearch, category, sort, city, minPrice, maxPrice]);
 
   useEffect(() => {
     setLoading(true);
@@ -104,6 +108,22 @@ export default function Items() {
             <option value="">All cities</option>
             {cities.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
+          <input
+            type="number"
+            placeholder="Min $"
+            value={minPrice}
+            onChange={e => setMinPrice(e.target.value)}
+            min="0"
+            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px", width: "80px" }}
+          />
+          <input
+            type="number"
+            placeholder="Max $"
+            value={maxPrice}
+            onChange={e => setMaxPrice(e.target.value)}
+            min="0"
+            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px", width: "80px" }}
+          />
         </div>
       </div>
 
@@ -143,7 +163,7 @@ export default function Items() {
       )}
 
       <div className="grid">
-        {items.map(item => <ItemCard key={item.id} item={item} />)}
+        {items.map(item => <ItemCard key={item.id} item={item} currentUserId={storedUser?.id} />)}
       </div>
 
       {hasMore && (

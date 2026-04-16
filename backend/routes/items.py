@@ -14,6 +14,11 @@ items_bp = Blueprint("items", __name__, url_prefix="/api")
 
 @items_bp.get("/items")
 def get_items():
+    min_price_raw = request.args.get("min_price")
+    max_price_raw = request.args.get("max_price")
+    min_price = int(min_price_raw) if min_price_raw else None
+    max_price = int(max_price_raw) if max_price_raw else None
+
     items_data = item_service.list_items(
         city=request.args.get("city"),
         listing_type=request.args.get("listing_type"),
@@ -22,6 +27,8 @@ def get_items():
         sort=request.args.get("sort", "newest"),
         page=int(request.args.get("page", 1)),
         per_page=int(request.args.get("per_page", 20)),
+        min_price=min_price,
+        max_price=max_price,
     )
     return jsonify(items_data)
 
