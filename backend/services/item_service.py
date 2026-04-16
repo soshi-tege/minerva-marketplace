@@ -136,6 +136,14 @@ def delete_item(item):
     db.session.commit()
 
 
+def get_user_listings(user_id):
+    """Return (active, sold) item lists for a user's dashboard."""
+    all_items = Item.query.filter_by(seller_id=user_id).order_by(Item.created_at.desc()).all()
+    active = [i.to_dict() for i in all_items if i.status == "active"]
+    sold = [i.to_dict() for i in all_items if i.status == "sold"]
+    return active, sold
+
+
 def get_categories():
     """Return the list of valid categories."""
     return VALID_CATEGORIES

@@ -4,7 +4,7 @@ import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
 import API_BASE, { formatPriceCents, itemImageSrc } from "../config";
-const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
+const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
 export default function Item() {

@@ -45,7 +45,10 @@ def get_messages(convo_id):
 
 
 def send_message(convo_id, sender_id, body):
-    """Send a message in a conversation."""
+    """Send a message in a conversation. Verifies sender is a participant."""
+    convo = Conversation.query.get_or_404(convo_id)
+    if sender_id not in (convo.buyer_id, convo.seller_id):
+        raise PermissionError("You are not a participant in this conversation.")
     msg = Message(conversation_id=convo_id, sender_id=sender_id, body=body)
     db.session.add(msg)
     db.session.commit()
@@ -57,7 +60,7 @@ def get_unread_count(user_id):
     count = Message.query.join(Conversation).filter(
         ((Conversation.buyer_id == user_id) | (Conversation.seller_id == user_id)),
         Message.sender_id != user_id,
-        Message.read_at == None
+        Message.read_at.is_(None)
     ).count()
     return count
 
@@ -66,7 +69,7 @@ def mark_conversation_read(convo_id, user_id):
     """Mark all messages in a conversation as read for this user."""
     messages = Message.query.filter_by(conversation_id=convo_id).filter(
         Message.sender_id != user_id,
-        Message.read_at == None
+        Message.read_at.is_(None)
     ).all()
     for msg in messages:
         msg.read_at = datetime.now(timezone.utc)

@@ -103,7 +103,7 @@ def delete_item(item_id):
     try:
         verify_jwt_in_request()
         user_id = int(get_jwt_identity())
-    except Exception:
+    except (NoAuthorizationError, PyJWTError):
         return jsonify({"error": "Unauthorized"}), 401
 
     item = item_service.get_item(item_id)
