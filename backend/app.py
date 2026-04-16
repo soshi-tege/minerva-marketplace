@@ -48,6 +48,16 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        # Verify schema is up to date — db.create_all() won't add columns to existing tables.
+        # If a column is missing, drop and recreate (dev only — production uses migrations).
+        from sqlalchemy import inspect as sa_inspect
+        inspector = sa_inspect(db.engine)
+        if inspector.has_table("messages"):
+            columns = {col["name"] for col in inspector.get_columns("messages")}
+            if "read_at" not in columns:
+                logger.warning("Database schema outdated (missing read_at). Recreating tables.")
+                db.drop_all()
+                db.create_all()
 
     logger.info("App created. Database: %s", app.config["SQLALCHEMY_DATABASE_URI"])
     return app
