@@ -33,7 +33,7 @@ class Item(db.Model):
     seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    price = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Integer, nullable=False)  # stored in cents (e.g. 5000 = $50.00)
     currency = db.Column(db.String(10), nullable=False, default="USD")
     category = db.Column(db.String(100), nullable=False)
     condition = db.Column(db.String(50), nullable=False)

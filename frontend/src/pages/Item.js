@@ -4,12 +4,18 @@ import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
 import API_BASE, { formatPriceCents, itemImageSrc } from "../config";
+import { useAuth } from "../context/AuthContext";
+
 const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
 export default function Item() {
   const { itemID } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const token = user?.token;
+  const currentUserId = user?.id;
+
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -18,10 +24,6 @@ export default function Item() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [editError, setEditError] = useState("");
-
-  const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
-  const token = storedUser?.token;
-  const currentUserId = storedUser?.id;
 
   useEffect(() => {
     fetch(`${API_BASE}/items/${itemID}`)

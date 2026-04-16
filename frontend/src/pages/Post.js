@@ -4,9 +4,11 @@ import { useNavigate } from "react-router-dom";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
+import { useAuth } from "../context/AuthContext";
 
 export default function Post() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     title: "",
@@ -40,8 +42,7 @@ export default function Post() {
             ? 0
             : Math.round(Number(form.price) * 100);
 
-      const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
-      const token = storedUser?.token;
+      const token = user?.token;
       if (!token) {
         setError("Please log in before posting an item.");
         setLoading(false);
@@ -117,6 +118,9 @@ export default function Post() {
           <option value="Furniture">Furniture</option>
           <option value="Electronics">Electronics</option>
           <option value="Textbooks">Textbooks</option>
+          <option value="Kitchen">Kitchen</option>
+          <option value="Books">Books</option>
+          <option value="Clothing">Clothing</option>
           <option value="Other">Other</option>
         </select>
 

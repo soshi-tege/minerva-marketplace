@@ -5,7 +5,8 @@ import Heading from "../components/Heading";
 import ItemCard from "../components/ItemCard";
 import StatBox from "../components/StatBox";
 import SectionCard from "../components/SectionCard";
-import API_BASE from "../config";
+import { useAuth } from "../context/AuthContext";
+import { apiFetch } from "../services/api";
 
 export default function Dashboard() {
     const [stats, setStats] = useState({ active_count: 0, sold_count: 0, unread_messages: 0 });
@@ -14,12 +15,11 @@ export default function Dashboard() {
     const [recentMessages, setRecentMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
-    const token = storedUser?.token;
+    const { user } = useAuth();
+    const token = user?.token;
 
     useEffect(() => {
-        const headers = { Authorization: `Bearer ${token}` };
-        fetch(`${API_BASE}/me/dashboard`, { headers })
+        apiFetch("/me/dashboard")
             .then(res => res.json())
             .then(data => {
                 setStats(data.stats || { active_count: 0, sold_count: 0, unread_messages: 0 });
