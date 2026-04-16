@@ -46,9 +46,6 @@ def create_app():
     def health():
         return jsonify({"status": "ok"})
 
-    with app.app_context():
-        db.create_all()
-
     logger.info("App created. Database: %s", app.config["SQLALCHEMY_DATABASE_URI"])
     return app
 
@@ -58,5 +55,12 @@ app = create_app()
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     with app.app_context():
-        db.create_all()
+        # Use Alembic migrations for schema management.
+        # Run: flask db upgrade
+        # For convenience in dev, create tables if none exist (fresh DB).
+        from sqlalchemy import inspect as sa_inspect
+        inspector = sa_inspect(db.engine)
+        if not inspector.get_table_names():
+            from flask_migrate import upgrade
+            upgrade()
     app.run(port=port, debug=True)
