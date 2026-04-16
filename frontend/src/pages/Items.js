@@ -9,8 +9,8 @@ const CATEGORIES = ["All", "Appliance", "Furniture", "Electronics", "Textbooks",
 const SORTS = [
   { label: "Newest", value: "newest" },
   { label: "Oldest", value: "oldest" },
-  { label: "Price (low → high)", value: "price_asc" },
-  { label: "Price (high → low)", value: "price_desc" }
+  { label: "Price (low \u2192 high)", value: "price_asc" },
+  { label: "Price (high \u2192 low)", value: "price_desc" }
 ];
 const PER_PAGE = 20;
 
@@ -82,47 +82,32 @@ export default function Items() {
 
   return (
     <div className="container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
-        <h2 style={{ margin: 0 }}>Browse</h2>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <form onSubmit={handleSearch} style={{ display: "flex", gap: "8px" }}>
-            <input
-              placeholder="Search items..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}
-            />
+      <div className="browse-header">
+        <h2>Browse</h2>
+        <div className="browse-filters">
+          <form onSubmit={handleSearch} className="browse-search">
+            <input placeholder="Search items..." value={search} onChange={e => setSearch(e.target.value)} className="filter-input" />
             <Button style="btn-primary" type="submit">Search</Button>
           </form>
-          <select value={category} onChange={e => setCategory(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={category} onChange={e => setCategory(e.target.value)} className="filter-input">
             {CATEGORIES.map(c => <option key={c}>{c}</option>)}
           </select>
-          <select value={sort} onChange={e => setSort(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={sort} onChange={e => setSort(e.target.value)} className="filter-input">
             {SORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
-          <select value={city} onChange={e => setCity(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={city} onChange={e => setCity(e.target.value)} className="filter-input">
             <option value="">All cities</option>
             {cities.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "4px", marginBottom: "20px", borderBottom: "2px solid #eee" }}>
+      <div className="browse-tabs">
         {[["offering", "Items for Sale"], ["request", "Requests"]].map(([val, label]) => (
           <button
             key={val}
             onClick={() => setTab(val)}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              background: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: tab === val ? 700 : 400,
-              color: tab === val ? "#c0392b" : "#666",
-              borderBottom: tab === val ? "2px solid #c0392b" : "2px solid transparent",
-              marginBottom: "-2px",
-            }}
+            className={`browse-tab ${tab === val ? "browse-tab--active" : "browse-tab--inactive"}`}
           >
             {label}
           </button>
@@ -130,29 +115,25 @@ export default function Items() {
       </div>
 
       {loading && <p className="empty-state">Loading items...</p>}
-      {error && <p className="empty-state" style={{ color: "#c0392b" }}>{error}</p>}
+      {error && <p className="empty-state text-error">{error}</p>}
       {!loading && !error && items.length === 0 && (
         <div className="empty-state">
-          <img src={emptyState} alt="No items" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
-          <div style={{ fontWeight: 500, marginBottom: 8 }}>No listings yet</div>
-          <div style={{ color: '#888', marginBottom: 16 }}>Looks like there's nothing here yet.</div>
-          <Link to="/post" style={{ textDecoration: 'none' }}>
+          <img src={emptyState} alt="No items" className="empty-state-img" />
+          <div className="empty-state-title">No listings yet</div>
+          <div className="text-muted mb-12">Looks like there's nothing here yet.</div>
+          <Link to="/post">
             <Button style="btn-primary">Post an item</Button>
           </Link>
         </div>
       )}
 
       <div className="grid">
-        {items.map(item => <ItemCard key={item.id} item={item} />)}
+        {items.map(item => <ItemCard key={item.id} item={item} currentUserId={storedUser?.id} />)}
       </div>
 
       {hasMore && (
-        <div style={{ textAlign: "center", marginTop: "24px" }}>
-          <button
-            onClick={loadMore}
-            disabled={loadingMore}
-            style={{ padding: "10px 24px", borderRadius: "6px", background: "#c0392b", color: "#fff", border: "none", cursor: "pointer", fontSize: "14px" }}
-          >
+        <div className="load-more-wrap">
+          <button onClick={loadMore} disabled={loadingMore} className="btn-primary">
             {loadingMore ? "Loading..." : "Load more"}
           </button>
         </div>

@@ -35,17 +35,7 @@ export default function Header() {
           <NavLink to="/post">Post item</NavLink>
           <NavLink to="/messages">
             Messages{unreadCount > 0 && (
-              <span style={{
-                background: "#c0392b",
-                color: "white",
-                borderRadius: "10px",
-                padding: "1px 6px",
-                fontSize: "11px",
-                marginLeft: "4px",
-                fontWeight: 700,
-              }}>
-                {unreadCount}
-              </span>
+              <span className="badge-unread">{unreadCount}</span>
             )}
           </NavLink>
           <NavLink to="/dashboard">Dashboard</NavLink>
@@ -56,10 +46,10 @@ export default function Header() {
           </button>
           {isAuthenticated ? (
             <>
-              <span style={{ fontSize: 14 }}>
+              <span className="text-faint">
                 Hi, <strong>{user?.first_name}</strong>
               </span>
-              <button type="button" onClick={logout} style={{ background: "var(--secondary-btn)", color: "var(--secondary-btn-text)" }}>
+              <button type="button" onClick={logout} className="btn-secondary">
                 Log out
               </button>
             </>

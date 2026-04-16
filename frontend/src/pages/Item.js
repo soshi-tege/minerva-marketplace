@@ -91,19 +91,13 @@ export default function Item() {
         body: JSON.stringify({ status: "sold" }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setItem(data);
-      }
-    } finally {
-      setSaving(false);
-    }
+      if (res.ok) { setItem(data); }
+    } finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!token) return;
-    const confirmed = window.confirm("Delete this listing? This action cannot be undone.");
-    if (!confirmed) return;
-
+    if (!window.confirm("Delete this listing? This action cannot be undone.")) return;
     setDeleteError("");
     setDeleting(true);
     try {
@@ -111,17 +105,13 @@ export default function Item() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
-        navigate("/dashboard");
-      } else {
+      if (res.ok) { navigate("/dashboard"); }
+      else {
         const payload = await res.json().catch(() => ({}));
         setDeleteError(payload.error || "Could not delete listing. Please try again.");
       }
-    } catch {
-      setDeleteError("Could not delete listing. Please check your connection and try again.");
-    } finally {
-      setDeleting(false);
-    }
+    } catch { setDeleteError("Could not delete listing. Please check your connection and try again."); }
+    finally { setDeleting(false); }
   };
 
   if (loading) return <Body><p>Loading...</p></Body>;
@@ -131,73 +121,57 @@ export default function Item() {
 
   return (
     <Body>
-      <div className="card" style={{ maxWidth: 600, margin: "0 auto" }}>
+      <div className="card item-detail">
         {editing ? (
-          <>
+          <form onSubmit={e => { e.preventDefault(); handleSave(); }}>
             <Heading level={2}>Edit Listing</Heading>
             <label>Title</label>
-            <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} style={{ width: "100%", marginBottom: 10 }} />
+            <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="edit-field" />
             <label>Category</label>
-            <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} style={{ width: "100%", marginBottom: 10 }}>
+            <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="edit-field">
               {CATEGORIES.map(c => <option key={c}>{c}</option>)}
             </select>
             <label>Condition</label>
-            <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})} style={{ width: "100%", marginBottom: 10 }}>
+            <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})} className="edit-field">
               {CONDITIONS.map(c => <option key={c}>{c}</option>)}
             </select>
             <label>Price ($)</label>
-            <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} style={{ width: "100%", marginBottom: 10 }} />
+            <input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="edit-field" />
             <label>Location</label>
-            <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} style={{ width: "100%", marginBottom: 10 }} />
+            <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} className="edit-field" />
             <label>Description</label>
-            <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={3} style={{ width: "100%", marginBottom: 10 }} />
+            <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={3} className="edit-field" />
             <label>Status</label>
-            <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} style={{ width: "100%", marginBottom: 16 }}>
+            <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="edit-field mb-12">
               <option value="active">Active</option>
               <option value="reserved">Reserved</option>
               <option value="sold">Sold</option>
             </select>
-            {editError && (
-              <p style={{ color: "#c0392b", marginBottom: 12 }}>{editError}</p>
-            )}
-            <div style={{ display: "flex", gap: 10 }}>
+            {editError && <p className="text-error mb-12">{editError}</p>}
+            <div className="item-detail-actions">
               <Button onClick={handleSave} style="btn-primary">{saving ? "Saving..." : "Save changes"}</Button>
               <Button onClick={() => { setEditing(false); setEditError(""); }}>Cancel</Button>
             </div>
-          </>
+          </form>
         ) : (
           <>
-            <img
-              src={itemImageSrc(item.image_url)}
-              alt=""
-              style={{
-                width: "100%",
-                maxHeight: 280,
-                objectFit: "cover",
-                borderRadius: 8,
-                marginBottom: 16,
-              }}
-            />
+            <img src={itemImageSrc(item.image_url)} alt="" className="item-detail-img" />
             <Heading level={2}>{item.title}</Heading>
             <p><strong>{formatPriceCents(item.price)}</strong> · {item.condition}</p>
             <p>{item.description}</p>
-            <p style={{ color: "#666", fontSize: "0.9rem" }}>📍 {item.location}</p>
-            <p style={{ fontSize: "13px", color: item.status === "active" ? "#27ae60" : "#888", fontWeight: 600, textTransform: "capitalize" }}>Status: {item.status}</p>
-            {deleteError && (
-              <p style={{ color: "#c0392b", marginTop: 8 }}>{deleteError}</p>
-            )}
-            <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+            <p className="item-detail-location">📍 {item.location}</p>
+            <p className="item-detail-status" style={{ color: item.status === "active" ? "var(--success)" : "var(--text-faint)" }}>
+              Status: {item.status}
+            </p>
+            {deleteError && <p className="text-error">{deleteError}</p>}
+            <div className="item-detail-actions">
               {isSeller ? (
                 <>
                   <Button onClick={handleStartEditing} style="btn-primary">Edit listing</Button>
                   {item.status !== "sold" && (
-                    <Button onClick={handleMarkAsSold}>
-                      {saving ? "Updating..." : "Mark as sold"}
-                    </Button>
+                    <Button onClick={handleMarkAsSold}>{saving ? "Updating..." : "Mark as sold"}</Button>
                   )}
-                  <Button onClick={handleDelete} style="btn-danger">
-                    {deleting ? "Deleting..." : "Delete listing"}
-                  </Button>
+                  <Button onClick={handleDelete} style="btn-danger">{deleting ? "Deleting..." : "Delete listing"}</Button>
                 </>
               ) : (
                 item.status !== "sold" && (
@@ -206,11 +180,11 @@ export default function Item() {
               )}
             </div>
             {item.seller && (
-              <div style={{ marginTop: 24, padding: "16px", background: "#f9f9f9", borderRadius: "8px", borderTop: "1px solid #eee" }}>
-                <p style={{ margin: "0 0 6px 0", fontSize: "13px", color: "#999", textTransform: "uppercase", letterSpacing: "0.05em" }}>Seller</p>
-                <p style={{ margin: "0 0 4px 0", fontWeight: 600 }}>{item.seller.first_name} {item.seller.last_name}</p>
-                <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "#666" }}>{item.seller.city} · Cohort {item.seller.cohort}</p>
-                <p style={{ margin: 0, fontSize: "13px", color: "#999" }}>Member since {new Date(item.seller.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
+              <div className="seller-card">
+                <p className="seller-card-label">Seller</p>
+                <p className="seller-card-name">{item.seller.first_name} {item.seller.last_name}</p>
+                <p className="seller-card-info">{item.seller.city} · Cohort {item.seller.cohort}</p>
+                <p className="seller-card-since">Member since {new Date(item.seller.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
               </div>
             )}
           </>
