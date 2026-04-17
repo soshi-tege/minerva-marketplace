@@ -1,6 +1,7 @@
 import os
 import uuid
 from flask import current_app
+from sqlalchemy import or_
 from werkzeug.utils import secure_filename
 from ..models import db, Item
 
@@ -8,6 +9,23 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 VALID_CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"]
+
+SYNONYMS = {
+    "earbuds": "headphones",
+    "headphones": "earbuds",
+    "laptop": "notebook",
+    "notebook": "laptop",
+    "sofa": "couch",
+    "couch": "sofa",
+    "fridge": "refrigerator",
+    "refrigerator": "fridge",
+    "phone": "smartphone",
+    "smartphone": "phone",
+    "bike": "bicycle",
+    "bicycle": "bike",
+    "tv": "television",
+    "television": "tv",
+}
 VALID_CONDITIONS = ["New", "Like New", "Good", "Fair"]
 VALID_LISTING_TYPES = ["offering", "request"]
 VALID_SORT_OPTIONS = {"newest", "oldest", "price_asc", "price_desc"}
@@ -73,7 +91,17 @@ def list_items(city=None, listing_type=None, category=None, q=None, sort="newest
         query = query.filter(Item.category == category)
     if q:
         pattern = f"%{q}%"
-        query = query.filter(Item.title.ilike(pattern) | Item.description.ilike(pattern))
+        canonical = SYNONYMS.get(q.lower())
+        if canonical:
+            alt_pattern = f"%{canonical}%"
+            query = query.filter(
+                or_(
+                    Item.title.ilike(pattern) | Item.description.ilike(pattern),
+                    Item.title.ilike(alt_pattern) | Item.description.ilike(alt_pattern),
+                )
+            )
+        else:
+            query = query.filter(Item.title.ilike(pattern) | Item.description.ilike(pattern))
     if min_price is not None:
         query = query.filter(Item.price >= min_price)
     if max_price is not None:
