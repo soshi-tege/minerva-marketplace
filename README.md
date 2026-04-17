@@ -184,6 +184,35 @@ The frontend separates concerns similarly:
 | `JWT_SECRET_KEY` | `dev-secret-change-in-production` | Secret for signing JWTs |
 | `REACT_APP_API_ORIGIN` | `http://127.0.0.1:5001` | Backend origin (used to build API_BASE and image URLs) |
 
+## Docker Setup
+
+The project includes Dockerfiles for the backend and frontend, plus a simple `docker-compose.yml` that also starts Postgres.
+
+### Files
+
+- `backend/Dockerfile` builds the Flask API
+- `frontend/Dockerfile` builds the React app
+- `docker-compose.yml` starts backend, frontend, and Postgres together
+
+### Run with Docker Compose
+
+From the repository root:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+- backend on http://localhost:5001
+- frontend on http://localhost:3000
+- Postgres on port 5433 if you keep the current compose port mapping
+
+### Stop Docker
+
+```bash
+docker compose down
+```
+
 ## Local Development Setup
 
 ### Prerequisites
@@ -202,7 +231,7 @@ cd ..
 python -m backend.app
 ```
 
-The backend runs on http://localhost:5001. The database file (`instance/app.db`) is created automatically in the `instance/` directory on first run.
+The backend runs on http://localhost:5001. In local non-Docker mode, the default database is SQLite and the database file (`instance/app.db`) is created automatically in the `instance/` directory on first run.
 
 ### Frontend
 
@@ -227,6 +256,8 @@ python -m backend.app
 cd frontend
 npm start
 ```
+
+If you are using Docker Compose, use `docker compose up --build` instead of starting the backend and frontend separately.
 
 ## Project Structure
 
