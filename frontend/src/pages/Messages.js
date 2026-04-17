@@ -15,10 +15,12 @@ function formatMessageTime(isoString) {
 export default function Messages() {
   const { user } = useAuth();
   const currentUserId = user?.id;
+  const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState([]);
   const [selectedConvo, setSelectedConvo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [imageFile, setImageFile] = useState(null);
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editInput, setEditInput] = useState("");
   const pollingRef = useRef(null);
@@ -83,13 +85,13 @@ export default function Messages() {
 
   const handleEditStart = (msg) => {
     setEditingMsgId(msg.id);
-    setEditInput(msg.body);
+    setEditInput(msg.body || "");
   };
 
   const handleEditSave = async (msgId) => {
     if (!editInput.trim()) return;
     const updated = await editMessage(msgId, editInput);
-    setMessages((prev) => prev.map((m) => m.id === msgId ? updated : m));
+    setMessages((prev) => prev.map((m) => (m.id === msgId ? updated : m)));
     setEditingMsgId(null);
     setEditInput("");
   };
@@ -97,8 +99,14 @@ export default function Messages() {
   const handleDelete = async (msgId) => {
     if (!window.confirm("Delete this message?")) return;
     await deleteMessage(msgId);
-    setMessages((prev) => prev.map((m) => m.id === msgId ? { ...m, body: "[deleted]", deleted: true } : m));
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, body: "[deleted]", deleted: true } : m))
+    );
   };
+
+  const lastOwnMessageId = [...messages]
+    .reverse()
+    .find((m) => m.sender_id === currentUserId)?.id;
 
   return (
     <div className="container messages" style={{ display: "flex", gap: "1rem", padding: "1rem" }}>
@@ -128,7 +136,16 @@ export default function Messages() {
             <p style={{ margin: 0, fontWeight: 600 }}>{c.other_user}</p>
             <p style={{ margin: 0, fontSize: "0.8rem", color: "#666" }}>{c.item_title}</p>
             {(c.last_message || c.last_message_has_image) && (
-              <p style={{ margin: 0, fontSize: "0.75rem", color: "#999", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "0.75rem",
+                  color: "#999",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
                 {c.last_message || "📷 Image"}
               </p>
             )}
@@ -146,7 +163,11 @@ export default function Messages() {
                 const isMine = m.sender_id === currentUserId;
                 const isEditing = editingMsgId === m.id;
                 return (
-                  <div key={m.id} style={{ alignSelf: isMine ? "flex-end" : "flex-start", maxWidth: "70%", display: "flex", flexDirection: "column", gap: 2 }}>
+                  <div
+                    key={m.id}
+                    className={`message-bubble ${isMine ? "outgoing" : "incoming"}`}
+                    style={{ alignSelf: isMine ? "flex-end" : "flex-start", maxWidth: "70%" }}
+                  >
                     {isEditing ? (
                       <div style={{ display: "flex", gap: 4 }}>
                         <input
@@ -156,26 +177,49 @@ export default function Messages() {
                           autoFocus
                           style={{ flex: 1, fontSize: 14 }}
                         />
-                        <button onClick={() => handleEditSave(m.id)} className="btn-primary" style={{ padding: "4px 8px", fontSize: 12 }}>Save</button>
-                        <button onClick={() => setEditingMsgId(null)} style={{ padding: "4px 8px", fontSize: 12 }}>Cancel</button>
+                        <button type="button" onClick={() => handleEditSave(m.id)} className="btn-primary" style={{ padding: "4px 8px", fontSize: 12 }}>
+                          Save
+                        </button>
+                        <button type="button" onClick={() => setEditingMsgId(null)} style={{ padding: "4px 8px", fontSize: 12 }}>
+                          Cancel
+                        </button>
                       </div>
                     ) : (
-                      <div
-                        style={{
-                          background: isMine ? "#c0392b" : "#f0f0f0",
-                          color: isMine ? "white" : "#222",
-                          padding: "8px 12px",
-                          borderRadius: "12px",
-                          fontSize: "14px",
-                        }}
-                      >
-                        {m.body}
-                      </div>
+                      <>
+                        {m.body ? (
+                          <p style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.body}</p>
+                        ) : null}
+                        {m.image_url ? (
+                          <img
+                            src={itemImageSrc(m.image_url)}
+                            alt="Shared in chat"
+                            className="message-image"
+                          />
+                        ) : null}
+                        <div className="message-meta">
+                          <span>{formatMessageTime(m.created_at)}</span>
+                          {isMine && m.id === lastOwnMessageId && (
+                            <span>{m.read_at ? "Seen" : "Sent"}</span>
+                          )}
+                        </div>
+                      </>
                     )}
                     {isMine && !isEditing && !m.deleted && (
-                      <div style={{ display: "flex", gap: 6, alignSelf: "flex-end" }}>
-                        <button onClick={() => handleEditStart(m)} style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", color: "#999", padding: 0 }}>edit</button>
-                        <button onClick={() => handleDelete(m.id)} style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", color: "#999", padding: 0 }}>delete</button>
+                      <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", marginTop: 4 }}>
+                        <button
+                          type="button"
+                          onClick={() => handleEditStart(m)}
+                          style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", opacity: 0.85, padding: 0 }}
+                        >
+                          edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(m.id)}
+                          style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", opacity: 0.85, padding: 0 }}
+                        >
+                          delete
+                        </button>
                       </div>
                     )}
                   </div>
@@ -199,7 +243,9 @@ export default function Messages() {
                   style={{ display: "none" }}
                 />
               </label>
-              <button onClick={handleSend} className="btn-primary">Send</button>
+              <button type="button" onClick={handleSend} className="btn-primary">
+                Send
+              </button>
             </div>
             {imageFile ? (
               <p style={{ margin: "8px 0 0", color: "#666", fontSize: "12px" }}>
