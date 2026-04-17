@@ -77,6 +77,8 @@ export default function Item() {
       location: item.location || "",
       description: item.description || "",
       status: item.status || "active",
+      purchased_from: item.purchased_from || "",
+      purchased_year: item.purchased_year || "",
     });
     setEditing(true);
   };
@@ -151,6 +153,10 @@ export default function Item() {
             <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} style={{ width: "100%", marginBottom: 10 }} />
             <label>Description</label>
             <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={3} style={{ width: "100%", marginBottom: 10 }} />
+            <label>Where was it bought? (optional)</label>
+            <input value={form.purchased_from} onChange={e => setForm({...form, purchased_from: e.target.value})} placeholder="e.g. Amazon, IKEA" style={{ width: "100%", marginBottom: 10 }} />
+            <label>Year purchased (optional)</label>
+            <input value={form.purchased_year} onChange={e => setForm({...form, purchased_year: e.target.value})} placeholder="e.g. 2023" maxLength={4} style={{ width: "100%", marginBottom: 10 }} />
             <label>Status</label>
             <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} style={{ width: "100%", marginBottom: 16 }}>
               <option value="active">Active</option>
@@ -181,6 +187,11 @@ export default function Item() {
             <Heading level={2}>{item.title}</Heading>
             <p><strong>{formatPriceCents(item.price)}</strong> · {item.condition}</p>
             <p>{item.description}</p>
+            {(item.purchased_from || item.purchased_year) && (
+              <p style={{ color: "#666", fontSize: "0.9rem" }}>
+                🛒 Bought{item.purchased_from ? ` from ${item.purchased_from}` : ""}{item.purchased_year ? ` in ${item.purchased_year}` : ""}
+              </p>
+            )}
             <p style={{ color: "#666", fontSize: "0.9rem" }}>📍 {item.location}</p>
             <p style={{ fontSize: "13px", color: item.status === "active" ? "#27ae60" : "#888", fontWeight: 600, textTransform: "capitalize" }}>Status: {item.status}</p>
             {deleteError && (
