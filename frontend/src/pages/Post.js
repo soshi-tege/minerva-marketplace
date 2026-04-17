@@ -123,6 +123,9 @@ export default function Post() {
           <option value="Furniture">Furniture</option>
           <option value="Electronics">Electronics</option>
           <option value="Textbooks">Textbooks</option>
+          <option value="Kitchen">Kitchen</option>
+          <option value="Books">Books</option>
+          <option value="Clothing">Clothing</option>
           <option value="Other">Other</option>
         </select>
 

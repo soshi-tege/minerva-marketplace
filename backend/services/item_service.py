@@ -59,6 +59,10 @@ def validate_item_data(data, require_all=True):
     if listing_type and listing_type not in VALID_LISTING_TYPES:
         errors["listing_type"] = "Must be 'offering' or 'request'."
 
+    purchased_year = data.get("purchased_year", "").strip() if data.get("purchased_year") else ""
+    if purchased_year and (not purchased_year.isdigit() or len(purchased_year) != 4):
+        errors["purchased_year"] = "Must be a 4-digit year."
+
     location = data.get("location", "").strip() if data.get("location") else ""
     if require_all and not location:
         errors["location"] = "Location is required."
