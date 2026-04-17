@@ -1,3 +1,4 @@
+import { useAuth } from "../context/AuthContext";
 import API_BASE from "../config";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +11,7 @@ const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 
 export default function Post() {
   const navigate = useNavigate();
-
+  const { token } = useAuth();
   const [listingType, setListingType] = useState(null); // "offering" | "request"
 
   const [form, setForm] = useState({
@@ -75,8 +76,6 @@ export default function Post() {
     setLoading(true);
 
     try {
-      const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
-      const token = storedUser?.token;
 
       if (!token) {
         setError("Please log in before posting an item.");
