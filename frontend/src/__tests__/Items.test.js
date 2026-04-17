@@ -25,6 +25,8 @@ const mockItem = (id) => ({
   listing_type: 'offering',
   city: 'Berlin',
   category: 'Books',
+  created_at: '2026-04-01T00:00:00Z',
+  location: 'Berlin',
 });
 
 function mockFetch({ items = [], hasMore = false, cities = [] } = {}) {
