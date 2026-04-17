@@ -62,6 +62,28 @@ def get_unread_count(user_id):
     return count
 
 
+def edit_message(msg_id, user_id, body):
+    """Edit a message. Only the sender can edit."""
+    msg = Message.query.get_or_404(msg_id)
+    if msg.sender_id != user_id:
+        return None, "forbidden"
+    if not body.strip():
+        return None, "empty"
+    msg.body = body.strip()
+    db.session.commit()
+    return msg, None
+
+
+def delete_message(msg_id, user_id):
+    """Delete a message. Only the sender can delete."""
+    msg = Message.query.get_or_404(msg_id)
+    if msg.sender_id != user_id:
+        return False, "forbidden"
+    db.session.delete(msg)
+    db.session.commit()
+    return True, None
+
+
 def mark_conversation_read(convo_id, user_id):
     """Mark all messages in a conversation as read for this user."""
     messages = Message.query.filter_by(conversation_id=convo_id).filter(

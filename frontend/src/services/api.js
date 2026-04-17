@@ -40,6 +40,25 @@ export const getUnreadCount = async () => {
   return data.unread_count ?? 0;
 };
 
+export const editMessage = async (msgId, body) => {
+  const res = await fetch(`${API_BASE}/messages/messages/${msgId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ body }),
+  });
+  return res.json();
+};
+
+export const deleteMessage = async (msgId) => {
+  await fetch(`${API_BASE}/messages/messages/${msgId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+};
+
 export const markConversationRead = async (convoId) => {
   try {
     await fetch(`${API_BASE}/messages/conversations/${convoId}/read`, {

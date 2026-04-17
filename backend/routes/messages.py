@@ -38,6 +38,29 @@ def send_message(convo_id):
     return jsonify(msg.to_dict()), 201
 
 
+@messages_bp.put("/messages/<int:msg_id>")
+@jwt_required()
+def edit_message(msg_id):
+    user_id = int(get_jwt_identity())
+    data = request.get_json()
+    msg, err = message_service.edit_message(msg_id, user_id, data.get("body", ""))
+    if err == "forbidden":
+        return jsonify({"error": "Forbidden"}), 403
+    if err == "empty":
+        return jsonify({"error": "Message cannot be empty"}), 400
+    return jsonify(msg.to_dict())
+
+
+@messages_bp.delete("/messages/<int:msg_id>")
+@jwt_required()
+def delete_message(msg_id):
+    user_id = int(get_jwt_identity())
+    ok, err = message_service.delete_message(msg_id, user_id)
+    if err == "forbidden":
+        return jsonify({"error": "Forbidden"}), 403
+    return jsonify({"ok": True})
+
+
 @messages_bp.get("/unread-count")
 @jwt_required()
 def unread_count():
