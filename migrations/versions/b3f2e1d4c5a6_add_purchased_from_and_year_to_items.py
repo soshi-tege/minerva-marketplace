@@ -1,7 +1,7 @@
 """add purchased_from and purchased_year to items
 
 Revision ID: b3f2e1d4c5a6
-Revises: 9da5a738953a
+Revises: a114181ffc69
 Create Date: 2026-04-16 00:00:00.000000
 
 """
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = 'b3f2e1d4c5a6'
-down_revision = '9da5a738953a'
+down_revision = 'a114181ffc69'
 branch_labels = None
 depends_on = None
 
