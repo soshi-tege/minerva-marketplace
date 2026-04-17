@@ -1,4 +1,5 @@
 import os
+import uuid
 from flask import current_app
 from werkzeug.utils import secure_filename
 from ..models import db, Item
@@ -162,7 +163,7 @@ def save_upload(file):
 
     upload_dir = os.environ.get("UPLOAD_DIR") or os.path.join(current_app.root_path, "static", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
-    filename = secure_filename(file.filename)
+    filename = f"{uuid.uuid4().hex}.{ext}"
     file.save(os.path.join(upload_dir, filename))
     return f"/static/uploads/{filename}"
 
