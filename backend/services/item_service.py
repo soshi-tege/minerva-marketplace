@@ -139,3 +139,9 @@ def delete_item(item):
 def get_categories():
     """Return the list of valid categories."""
     return VALID_CATEGORIES
+
+
+def get_cities():
+    """Return distinct item locations."""
+    rows = db.session.query(Item.location).filter(Item.location.isnot(None)).distinct().all()
+    return sorted([r[0] for r in rows if r[0]])

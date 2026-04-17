@@ -104,6 +104,7 @@ class Message(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     body = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    read_at = db.Column(db.DateTime, nullable=True)
     conversation = db.relationship("Conversation", back_populates="messages")
     sender = db.relationship("User", backref="messages")
 

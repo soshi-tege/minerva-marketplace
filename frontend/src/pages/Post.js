@@ -42,6 +42,11 @@ export default function Post() {
 
       const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
       const token = storedUser?.token;
+      if (!token) {
+        setError("Please log in before posting an item.");
+        setLoading(false);
+        return;
+      }
 
       const body = new FormData();
       body.append("title", form.title);
@@ -125,13 +130,16 @@ export default function Post() {
         />
 
         <label htmlFor="location">Location</label>
-        <input
-          id="location"
-          name="location"
-          placeholder="City or campus"
-          value={form.location}
-          onChange={handleChange}
-        />
+        <select id="location" name="location" value={form.location} onChange={handleChange} required>
+          <option value="">Select your city</option>
+          <option value="San Francisco">San Francisco</option>
+          <option value="Buenos Aires">Buenos Aires</option>
+          <option value="Hyderabad">Hyderabad</option>
+          <option value="Taipei">Taipei</option>
+          <option value="Seoul">Seoul</option>
+          <option value="Tokyo">Tokyo</option>
+          <option value="Berlin">Berlin</option>
+        </select>
 
         <label htmlFor="pickupBy">Pickup by</label>
         <input
