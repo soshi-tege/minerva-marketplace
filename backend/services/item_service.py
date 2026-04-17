@@ -1,4 +1,11 @@
+import os
+import uuid
+from flask import current_app
+from werkzeug.utils import secure_filename
 from ..models import db, Item
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 VALID_CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"]
 VALID_CONDITIONS = ["New", "Like New", "Good", "Fair"]
@@ -143,6 +150,39 @@ def delete_item(item):
     """Delete an item."""
     db.session.delete(item)
     db.session.commit()
+
+
+def save_upload(file):
+    """Validate and save an uploaded image file.
+    Returns the image URL path or raises ValueError.
+    Uses UPLOAD_DIR env var if set; defaults to static/uploads/ for local dev.
+    Production deployments should use a persistent volume or object storage."""
+    if not file or not file.filename:
+        return None
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ValueError(f"File type not allowed. Use: {', '.join(ALLOWED_EXTENSIONS)}")
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_FILE_SIZE:
+        raise ValueError("File too large. Maximum size is 5 MB.")
+
+    upload_dir = os.environ.get("UPLOAD_DIR") or os.path.join(current_app.root_path, "static", "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    file.save(os.path.join(upload_dir, filename))
+    return f"/static/uploads/{filename}"
+
+
+def get_user_listings(user_id):
+    """Return (active, sold) item lists for a user's dashboard."""
+    all_items = Item.query.filter_by(seller_id=user_id).order_by(Item.created_at.desc()).all()
+    active = [i.to_dict() for i in all_items if i.status == "active"]
+    sold = [i.to_dict() for i in all_items if i.status == "sold"]
+    return active, sold
 
 
 def get_categories():

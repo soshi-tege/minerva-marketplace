@@ -1,7 +1,7 @@
-import API_BASE from "../config";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { registerUser } from "../services/authService";
 
 const CITIES = ["San Francisco", "Buenos Aires", "Hyderabad", "Taipei", "Seoul", "Tokyo", "Berlin"];
 
@@ -22,20 +22,11 @@ export default function Signup() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ first_name: firstName, last_name: lastName, email, password, city, cohort }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Sign up failed");
-      } else {
-        login({ ...data.user, token: data.token });
-        navigate("/");
-      }
+      const data = await registerUser({ email, password, first_name: firstName, last_name: lastName, city, cohort });
+      login({ ...data.user, token: data.token });
+      navigate("/");
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

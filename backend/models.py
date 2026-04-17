@@ -33,7 +33,7 @@ class Item(db.Model):
     seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    price = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Integer, nullable=False)  # stored in cents (e.g. 5000 = $50.00)
     currency = db.Column(db.String(10), nullable=False, default="USD")
     category = db.Column(db.String(100), nullable=False)
     condition = db.Column(db.String(50), nullable=False)
@@ -81,10 +81,10 @@ class Conversation(db.Model):
     buyer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
-    item = db.relationship("Item", backref="conversations")
+    item = db.relationship("Item", backref=db.backref("conversations", cascade="all, delete-orphan"))
     buyer = db.relationship("User", foreign_keys=[buyer_id], backref="buying_conversations")
     seller = db.relationship("User", foreign_keys=[seller_id], backref="selling_conversations")
-    messages = db.relationship("Message", back_populates="conversation", order_by="Message.created_at")
+    messages = db.relationship("Message", back_populates="conversation", order_by="Message.created_at", cascade="all, delete-orphan")
 
     def to_dict(self):
         return {

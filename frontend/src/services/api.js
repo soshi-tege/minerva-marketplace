@@ -1,8 +1,19 @@
 import API_BASE from "../config";
 
-const getToken = () => {
+export const getToken = () => {
   const u = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
   return u?.token;
+};
+
+export const apiFetch = async (path, options = {}) => {
+  const token = getToken();
+  const headers = { ...options.headers };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = headers["Content-Type"] || "application/json";
+  }
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  return res;
 };
 
 export const getConversations = async () => {
