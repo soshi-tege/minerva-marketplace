@@ -8,10 +8,26 @@ const CONDITION_COLORS = {
   "Fair": "#888",
 };
 
-export default function ItemCard({ item }) {
+function timeAgo(dateString) {
+  const now = new Date();
+  const date = new Date(dateString);
+  const seconds = Math.floor((now - date) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
+export default function ItemCard({ item, currentUserId }) {
   const price = formatPriceCents(item.price);
   const conditionColor = CONDITION_COLORS[item.condition] || "#888";
   const isSold = item.status === "sold";
+  const isOwn = currentUserId && item.seller_id === currentUserId;
 
   return (
     <Link to={`/items/${item.id}`} style={{ textDecoration: "none", color: "inherit" }}>
@@ -38,6 +54,24 @@ export default function ItemCard({ item }) {
             Sold
           </span>
         )}
+        {isOwn && !isSold && (
+          <span
+            style={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              background: "#2980b9",
+              color: "white",
+              fontSize: "11px",
+              fontWeight: 700,
+              borderRadius: 999,
+              padding: "4px 10px",
+              letterSpacing: "0.04em",
+            }}
+          >
+            Your listing
+          </span>
+        )}
         <img src={itemImageSrc(item.image_url)} alt={item.title} style={{ width: "100%", height: "160px", objectFit: "cover", borderRadius: "8px" }} />
         <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{item.title}</h3>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -46,7 +80,10 @@ export default function ItemCard({ item }) {
             {item.condition}
           </span>
         </div>
-        <p style={{ margin: 0, fontSize: "0.95rem", color: "#666" }}>📍 {item.location || "Unknown location"}</p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <p style={{ margin: 0, fontSize: "0.95rem", color: "#666" }}>📍 {item.location || "Unknown location"}</p>
+          <span style={{ fontSize: "0.8rem", color: "#999" }}>{timeAgo(item.created_at)}</span>
+        </div>
         {item.category && <p style={{ margin: 0, fontSize: "0.85rem", color: "#999" }}>{item.category}</p>}
       </div>
     </Link>

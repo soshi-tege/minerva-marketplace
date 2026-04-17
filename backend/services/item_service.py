@@ -47,8 +47,11 @@ def validate_item_data(data, require_all=True):
     return errors
 
 
-def list_items(city=None, listing_type=None, category=None, q=None, sort="newest", page=1, per_page=20):
-    """Query items with composable filters, search, sort, and pagination."""
+def list_items(city=None, listing_type=None, category=None, q=None, sort="newest",
+               page=1, per_page=20, min_price=None, max_price=None):
+    """Query items with composable filters, search, sort, and pagination.
+    Sold items are always pushed to the bottom of results."""
+    from sqlalchemy import case
     query = Item.query
 
     if city:
@@ -60,15 +63,21 @@ def list_items(city=None, listing_type=None, category=None, q=None, sort="newest
     if q:
         pattern = f"%{q}%"
         query = query.filter(Item.title.ilike(pattern) | Item.description.ilike(pattern))
+    if min_price is not None:
+        query = query.filter(Item.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Item.price <= max_price)
+
+    sold_order = case((Item.status == "sold", 1), else_=0)
 
     if sort == "oldest":
-        query = query.order_by(Item.created_at.asc())
+        query = query.order_by(sold_order, Item.created_at.asc())
     elif sort == "price_asc":
-        query = query.order_by(Item.price.asc())
+        query = query.order_by(sold_order, Item.price.asc())
     elif sort == "price_desc":
-        query = query.order_by(Item.price.desc())
+        query = query.order_by(sold_order, Item.price.desc())
     else:
-        query = query.order_by(Item.created_at.desc())
+        query = query.order_by(sold_order, Item.created_at.desc())
 
     total = query.count()
     items = query.offset((page - 1) * per_page).limit(per_page).all()
