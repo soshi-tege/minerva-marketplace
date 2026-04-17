@@ -41,7 +41,7 @@ export const getUnreadCount = async () => {
 };
 
 export const editMessage = async (msgId, body) => {
-  const res = await fetch(`${API_BASE}/messages/messages/${msgId}`, {
+  const res = await fetch(`${API_BASE}/messages/${msgId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -53,7 +53,7 @@ export const editMessage = async (msgId, body) => {
 };
 
 export const deleteMessage = async (msgId) => {
-  await fetch(`${API_BASE}/messages/messages/${msgId}`, {
+  await fetch(`${API_BASE}/messages/${msgId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${getToken()}` },
   });

@@ -109,6 +109,7 @@ class Message(db.Model):
     body = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     read_at = db.Column(db.DateTime, nullable=True)
+    deleted_at = db.Column(db.DateTime, nullable=True)
     conversation = db.relationship("Conversation", back_populates="messages")
     sender = db.relationship("User", backref="messages")
 
@@ -118,6 +119,7 @@ class Message(db.Model):
             "conversation_id": self.conversation_id,
             "sender_id": self.sender_id,
             "sender_name": self.sender.first_name,
-            "body": self.body,
+            "body": "[deleted]" if self.deleted_at else self.body,
+            "deleted": bool(self.deleted_at),
             "created_at": self.created_at.isoformat(),
         }

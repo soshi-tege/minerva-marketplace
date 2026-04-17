@@ -11,7 +11,7 @@ def get_conversations(user_id):
     result = []
     for c in convos:
         other = c.seller if c.buyer_id == user_id else c.buyer
-        last_msg = c.messages[-1] if c.messages else None
+        last_msg = next((m for m in reversed(c.messages) if not m.deleted_at), None)
         result.append({
             "id": c.id,
             "item_id": c.item_id,
@@ -63,25 +63,22 @@ def get_unread_count(user_id):
 
 
 def edit_message(msg_id, user_id, body):
-    """Edit a message. Only the sender can edit."""
     msg = Message.query.get_or_404(msg_id)
     if msg.sender_id != user_id:
-        return None, "forbidden"
+        raise PermissionError()
     if not body.strip():
-        return None, "empty"
+        raise ValueError("Message cannot be empty")
     msg.body = body.strip()
     db.session.commit()
-    return msg, None
+    return msg
 
 
 def delete_message(msg_id, user_id):
-    """Delete a message. Only the sender can delete."""
     msg = Message.query.get_or_404(msg_id)
     if msg.sender_id != user_id:
-        return False, "forbidden"
-    db.session.delete(msg)
+        raise PermissionError()
+    msg.deleted_at = datetime.now(timezone.utc)
     db.session.commit()
-    return True, None
 
 
 def mark_conversation_read(convo_id, user_id):

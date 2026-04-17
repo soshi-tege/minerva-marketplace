@@ -59,8 +59,9 @@ export default function Messages() {
   };
 
   const handleDelete = async (msgId) => {
+    if (!window.confirm("Delete this message?")) return;
     await deleteMessage(msgId);
-    setMessages((prev) => prev.filter((m) => m.id !== msgId));
+    setMessages((prev) => prev.map((m) => m.id === msgId ? { ...m, body: "[deleted]", deleted: true } : m));
   };
 
   return (
@@ -135,7 +136,7 @@ export default function Messages() {
                         {m.body}
                       </div>
                     )}
-                    {isMine && !isEditing && (
+                    {isMine && !isEditing && !m.deleted && (
                       <div style={{ display: "flex", gap: 6, alignSelf: "flex-end" }}>
                         <button onClick={() => handleEditStart(m)} style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", color: "#999", padding: 0 }}>edit</button>
                         <button onClick={() => handleDelete(m.id)} style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", color: "#999", padding: 0 }}>delete</button>

@@ -38,27 +38,29 @@ def send_message(convo_id):
     return jsonify(msg.to_dict()), 201
 
 
-@messages_bp.put("/messages/<int:msg_id>")
+@messages_bp.put("/<int:msg_id>")
 @jwt_required()
 def edit_message(msg_id):
     user_id = int(get_jwt_identity())
     data = request.get_json()
-    msg, err = message_service.edit_message(msg_id, user_id, data.get("body", ""))
-    if err == "forbidden":
+    try:
+        msg = message_service.edit_message(msg_id, user_id, data.get("body", ""))
+        return jsonify(msg.to_dict())
+    except PermissionError:
         return jsonify({"error": "Forbidden"}), 403
-    if err == "empty":
-        return jsonify({"error": "Message cannot be empty"}), 400
-    return jsonify(msg.to_dict())
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 
-@messages_bp.delete("/messages/<int:msg_id>")
+@messages_bp.delete("/<int:msg_id>")
 @jwt_required()
 def delete_message(msg_id):
     user_id = int(get_jwt_identity())
-    ok, err = message_service.delete_message(msg_id, user_id)
-    if err == "forbidden":
+    try:
+        message_service.delete_message(msg_id, user_id)
+        return jsonify({"ok": True})
+    except PermissionError:
         return jsonify({"error": "Forbidden"}), 403
-    return jsonify({"ok": True})
 
 
 @messages_bp.get("/unread-count")
