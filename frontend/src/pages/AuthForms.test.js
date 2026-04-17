@@ -24,9 +24,14 @@ beforeEach(() => {
 });
 
 test("login form has required fields and shows backend error", async () => {
-  global.fetch.mockResolvedValue({
-    ok: false,
-    json: async () => ({ error: "Invalid email or password" }),
+  global.fetch.mockImplementation((url) => {
+    if (String(url).includes("/auth/login")) {
+      return Promise.resolve({
+        ok: false,
+        json: async () => ({ error: "Invalid email or password" }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: async () => ({}) });
   });
 
   renderWithProviders(<Login />);
@@ -46,9 +51,14 @@ test("login form has required fields and shows backend error", async () => {
 });
 
 test("signup form validates required fields and shows backend error", async () => {
-  global.fetch.mockResolvedValue({
-    ok: false,
-    json: async () => ({ error: "Email already registered" }),
+  global.fetch.mockImplementation((url) => {
+    if (String(url).includes("/auth/signup")) {
+      return Promise.resolve({
+        ok: false,
+        json: async () => ({ error: "Email already registered" }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: async () => ({}) });
   });
 
   renderWithProviders(<Signup />);

@@ -1,11 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
 import API_BASE from "../config";
+import { useAuth } from "../context/AuthContext";
 
-const CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Other"];
+const CATEGORIES = [
+  "Appliance",
+  "Furniture",
+  "Electronics",
+  "Textbooks",
+  "Kitchen",
+  "Books",
+  "Clothing",
+  "Other",
+];
 const CONDITIONS = ["New", "Like New", "Good", "Fair"];
 const STATUSES = ["active", "reserved", "sold"];
 const CITIES = ["San Francisco", "Buenos Aires", "Hyderabad", "Taipei", "Seoul", "Tokyo", "Berlin"];
@@ -21,12 +31,9 @@ function toPriceCents(value) {
 export default function EditItem() {
   const { itemID } = useParams();
   const navigate = useNavigate();
-  const storedUser = useMemo(
-    () => JSON.parse(localStorage.getItem("mm_auth_user") || "{}"),
-    []
-  );
-  const token = storedUser?.token;
-  const currentUserId = storedUser?.id;
+  const { user } = useAuth();
+  const token = user?.token;
+  const currentUserId = user?.id;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,6 +49,9 @@ export default function EditItem() {
   });
 
   useEffect(() => {
+    if (!token || currentUserId == null) return;
+
+    setLoading(true);
     fetch(`${API_BASE}/items/${itemID}`)
       .then((r) => r.json())
       .then((data) => {
@@ -62,7 +72,7 @@ export default function EditItem() {
       })
       .catch(() => setError("Could not load listing for editing."))
       .finally(() => setLoading(false));
-  }, [itemID, currentUserId, navigate]);
+  }, [itemID, currentUserId, navigate, token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

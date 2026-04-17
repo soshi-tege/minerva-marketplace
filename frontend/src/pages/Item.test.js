@@ -3,13 +3,23 @@ import Item from "./Item";
 import { AuthProvider } from "../context/AuthContext";
 
 const mockNavigate = jest.fn();
+
+jest.mock("../context/AuthContext", () => ({
+  useAuth: jest.fn(),
+}));
+
 jest.mock("react-router-dom", () => ({
   useParams: () => ({ itemID: "1" }),
   useNavigate: () => mockNavigate,
 }));
 
+const { useAuth } = require("../context/AuthContext");
+
 beforeEach(() => {
-  localStorage.setItem("mm_auth_user", JSON.stringify({ id: 42, token: "token123" }));
+  useAuth.mockReturnValue({
+    user: { id: 42, token: "token123" },
+    isAuthenticated: true,
+  });
   global.fetch = jest.fn((url) => {
     if (String(url).includes("/api/items/1")) {
       return Promise.resolve({

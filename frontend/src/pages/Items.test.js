@@ -17,7 +17,17 @@ beforeEach(() => {
       return Promise.resolve({
         ok: true,
         json: async () => ({
-          items: [{ id: 2, title: "Desk Lamp", price: 2000, condition: "Good", location: "Tokyo" }],
+          items: [
+            {
+              id: 2,
+              title: "Desk Lamp",
+              price: 2000,
+              condition: "Good",
+              location: "Tokyo",
+              created_at: "2026-04-01T00:00:00Z",
+              listing_type: "offering",
+            },
+          ],
           has_more: false,
         }),
       });
@@ -26,7 +36,17 @@ beforeEach(() => {
       return Promise.resolve({
         ok: true,
         json: async () => ({
-          items: [{ id: 3, title: "Need Textbook", price: 0, condition: "Fair", location: "Berlin" }],
+          items: [
+            {
+              id: 3,
+              title: "Need Textbook",
+              price: 0,
+              condition: "Fair",
+              location: "Berlin",
+              created_at: "2026-04-02T00:00:00Z",
+              listing_type: "request",
+            },
+          ],
           has_more: false,
         }),
       });
@@ -34,7 +54,17 @@ beforeEach(() => {
     return Promise.resolve({
       ok: true,
       json: async () => ({
-        items: [{ id: 1, title: "Microwave", price: 4500, condition: "Good", location: "Tokyo" }],
+        items: [
+          {
+            id: 1,
+            title: "Microwave",
+            price: 4500,
+            condition: "Good",
+            location: "Tokyo",
+            created_at: "2026-04-01T00:00:00Z",
+            listing_type: "offering",
+          },
+        ],
         has_more: true,
       }),
     });
