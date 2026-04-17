@@ -1,19 +1,19 @@
-import os
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from flask_jwt_extended.exceptions import NoAuthorizationError
 from jwt.exceptions import PyJWTError
-from werkzeug.utils import secure_filename
 from ..services import item_service
-
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 items_bp = Blueprint("items", __name__, url_prefix="/api")
 
 
 @items_bp.get("/items")
 def get_items():
+    min_price_raw = request.args.get("min_price")
+    max_price_raw = request.args.get("max_price")
+    min_price = int(min_price_raw) if min_price_raw else None
+    max_price = int(max_price_raw) if max_price_raw else None
+
     items_data = item_service.list_items(
         city=request.args.get("city"),
         listing_type=request.args.get("listing_type"),
@@ -22,6 +22,8 @@ def get_items():
         sort=request.args.get("sort", "newest"),
         page=int(request.args.get("page", 1)),
         per_page=int(request.args.get("per_page", 20)),
+        min_price=min_price,
+        max_price=max_price,
     )
     return jsonify(items_data)
 
@@ -53,24 +55,13 @@ def create_item():
     if errors:
         return jsonify({"error": "Validation failed", "fields": errors}), 400
 
-    # Handle image upload
+    # Handle image upload via service layer
     image_url = None
     if "image" in request.files:
-        file = request.files["image"]
-        if file.filename:
-            ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
-            if ext not in ALLOWED_EXTENSIONS:
-                return jsonify({"error": f"File type not allowed. Use: {', '.join(ALLOWED_EXTENSIONS)}"}), 400
-            file.seek(0, 2)
-            size = file.tell()
-            file.seek(0)
-            if size > MAX_FILE_SIZE:
-                return jsonify({"error": "File too large. Maximum size is 5 MB."}), 400
-            upload_dir = os.path.join(current_app.root_path, "static", "uploads")
-            os.makedirs(upload_dir, exist_ok=True)
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(upload_dir, filename))
-            image_url = f"/static/uploads/{filename}"
+        try:
+            image_url = item_service.save_upload(request.files["image"])
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
     data["image_url"] = image_url
 
     item = item_service.create_item(seller_id, data)
@@ -103,7 +94,7 @@ def delete_item(item_id):
     try:
         verify_jwt_in_request()
         user_id = int(get_jwt_identity())
-    except Exception:
+    except (NoAuthorizationError, PyJWTError):
         return jsonify({"error": "Unauthorized"}), 401
 
     item = item_service.get_item(item_id)

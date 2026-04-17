@@ -32,3 +32,4 @@ node_modules/
 # Uploaded listing images (keep folder via .gitkeep)
 backend/static/uploads/*
 !backend/static/uploads/.gitkeep
+frontend/build/

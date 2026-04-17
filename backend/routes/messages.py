@@ -34,7 +34,10 @@ def get_messages(convo_id):
 def send_message(convo_id):
     user_id = int(get_jwt_identity())
     data = request.get_json()
-    msg = message_service.send_message(convo_id, user_id, data["body"])
+    try:
+        msg = message_service.send_message(convo_id, user_id, data["body"])
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
     return jsonify(msg.to_dict()), 201
 
 

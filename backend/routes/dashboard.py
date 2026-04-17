@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Item
-from services import message_service
+from ..services import item_service, message_service
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/api/me")
 
@@ -11,10 +10,7 @@ dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/api/me")
 def get_dashboard():
     user_id = int(get_jwt_identity())
 
-    all_items = Item.query.filter_by(seller_id=user_id).order_by(Item.created_at.desc()).all()
-    active = [i.to_dict() for i in all_items if i.status == "active"]
-    sold = [i.to_dict() for i in all_items if i.status == "sold"]
-
+    active, sold = item_service.get_user_listings(user_id)
     conversations = message_service.get_conversations(user_id)
     unread = message_service.get_unread_count(user_id)
 
