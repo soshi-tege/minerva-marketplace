@@ -83,7 +83,7 @@ describe('Login', () => {
   });
 
   test('shows fallback error on network failure', async () => {
-    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+    global.fetch = jest.fn().mockRejectedValue(new Error());
     renderLogin();
     userEvent.type(screen.getByLabelText(/minerva email/i), 'a@uni.minerva.edu');
     userEvent.type(screen.getByLabelText(/^password$/i), 'pass');

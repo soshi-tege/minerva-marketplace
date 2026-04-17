@@ -66,10 +66,10 @@ describe('Signup', () => {
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({
-            first_name: 'Ada',
-            last_name: 'Lovelace',
             email: 'ada@uni.minerva.edu',
             password: 'secret123',
+            first_name: 'Ada',
+            last_name: 'Lovelace',
             city: 'Berlin',
             cohort: 'M27',
           }),
@@ -106,7 +106,7 @@ describe('Signup', () => {
   });
 
   test('shows fallback error on network failure', async () => {
-    global.fetch = jest.fn().mockRejectedValue(new Error('Network'));
+    global.fetch = jest.fn().mockRejectedValue(new Error());
     renderSignup();
     fireEvent.submit(screen.getByRole('button', { name: /^sign up$/i }).closest('form'));
     await waitFor(() => expect(screen.getByText(/something went wrong/i)).toBeInTheDocument());
