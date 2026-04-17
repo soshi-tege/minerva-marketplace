@@ -16,7 +16,7 @@ import { useUnreadMessages } from "./hooks/useUnreadMessages";
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
-  const { notifications, navigateToMessages } = useUnreadMessages(isAuthenticated);
+  const { notifications, dismiss, navigateToConversation } = useUnreadMessages(isAuthenticated);
 
   return (
     <>
@@ -33,7 +33,7 @@ function AppContent() {
           <Route path="/items/:itemID" element={<ProtectedRoute><Item /></ProtectedRoute>} />
         </Routes>
       </main>
-      <Toast notifications={notifications} onDismiss={navigateToMessages} />
+      <Toast notifications={notifications} onDismiss={dismiss} onOpen={navigateToConversation} />
     </>
   );
 }

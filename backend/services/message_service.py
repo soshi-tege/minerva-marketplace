@@ -17,7 +17,8 @@ def get_conversations(user_id):
             "item_id": c.item_id,
             "item_title": c.item.title,
             "other_user": other.first_name,
-            "last_message": last_msg.body if last_msg else None,
+            "last_message": (last_msg.body or "") if last_msg else None,
+            "last_message_has_image": bool(last_msg.image_url) if last_msg else False,
         })
     return result
 
@@ -44,12 +45,20 @@ def get_messages(convo_id):
     return [m.to_dict() for m in convo.messages]
 
 
-def send_message(convo_id, sender_id, body):
+def send_message(convo_id, sender_id, body="", image_url=None):
     """Send a message in a conversation. Verifies sender is a participant."""
     convo = Conversation.query.get_or_404(convo_id)
     if sender_id not in (convo.buyer_id, convo.seller_id):
         raise PermissionError("You are not a participant in this conversation.")
-    msg = Message(conversation_id=convo_id, sender_id=sender_id, body=body)
+    text = (body or "").strip()
+    if not text and not image_url:
+        raise ValueError("Message body or image is required.")
+    msg = Message(
+        conversation_id=convo_id,
+        sender_id=sender_id,
+        body=text,
+        image_url=image_url,
+    )
     db.session.add(msg)
     db.session.commit()
     return msg
@@ -71,6 +80,8 @@ def mark_conversation_read(convo_id, user_id):
         Message.sender_id != user_id,
         Message.read_at.is_(None)
     ).all()
+    if not messages:
+        return
     for msg in messages:
         msg.read_at = datetime.now(timezone.utc)
     db.session.commit()
