@@ -41,6 +41,8 @@ class Item(db.Model):
     status = db.Column(db.String(50), nullable=False, default="active")
     location = db.Column(db.String(255), nullable=True)
     image_url = db.Column(db.String(500), nullable=True)
+    purchased_from = db.Column(db.String(255), nullable=True)
+    purchased_year = db.Column(db.String(10), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     seller = db.relationship("User", back_populates="items")
@@ -59,6 +61,8 @@ class Item(db.Model):
             "status": self.status,
             "location": self.location,
             "image_url": self.image_url,
+            "purchased_from": self.purchased_from,
+            "purchased_year": self.purchased_year,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }

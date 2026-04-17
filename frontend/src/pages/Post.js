@@ -11,9 +11,12 @@ export default function Post() {
   const [form, setForm] = useState({
     title: "",
     category: "Appliance",
+    condition: "Good",
     price: "",
     location: "",
     pickupBy: "",
+    purchasedFrom: "",
+    purchasedYear: "",
     description: "",
   });
   const [imageFile, setImageFile] = useState(null);
@@ -51,10 +54,13 @@ export default function Post() {
       const body = new FormData();
       body.append("title", form.title);
       body.append("category", form.category);
+      body.append("condition", form.condition);
       body.append("location", form.location || "");
       body.append("description", form.description || "");
       body.append("pickup_by", form.pickupBy || "");
       body.append("price_cents", String(priceCents));
+      body.append("purchased_from", form.purchasedFrom || "");
+      body.append("purchased_year", form.purchasedYear || "");
       if (imageFile) {
         body.append("image", imageFile);
       }
@@ -120,11 +126,24 @@ export default function Post() {
           <option value="Other">Other</option>
         </select>
 
-        <label htmlFor="price">Price</label>
+        <label htmlFor="condition">Condition</label>
+        <select
+          id="condition"
+          name="condition"
+          value={form.condition}
+          onChange={handleChange}
+        >
+          <option value="New">New</option>
+          <option value="Like New">Like New</option>
+          <option value="Good">Good</option>
+          <option value="Fair">Fair</option>
+        </select>
+
+        <label htmlFor="price">Price (USD)</label>
         <input
           id="price"
           name="price"
-          placeholder="2000 or Free"
+          placeholder="20.00 or Free"
           value={form.price}
           onChange={handleChange}
         />
@@ -147,6 +166,25 @@ export default function Post() {
           name="pickupBy"
           type="date"
           value={form.pickupBy}
+          onChange={handleChange}
+        />
+
+        <label htmlFor="purchasedFrom">Where did you buy it? (optional)</label>
+        <input
+          id="purchasedFrom"
+          name="purchasedFrom"
+          placeholder="e.g. Amazon, IKEA, local store"
+          value={form.purchasedFrom}
+          onChange={handleChange}
+        />
+
+        <label htmlFor="purchasedYear">Year purchased (optional)</label>
+        <input
+          id="purchasedYear"
+          name="purchasedYear"
+          placeholder="e.g. 2023"
+          maxLength={4}
+          value={form.purchasedYear}
           onChange={handleChange}
         />
 

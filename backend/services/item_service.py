@@ -100,6 +100,8 @@ def create_item(seller_id, data):
         location=data.get("location", "").strip(),
         description=data.get("description", "").strip(),
         image_url=data.get("image_url"),
+        purchased_from=data.get("purchased_from", "").strip() or None,
+        purchased_year=data.get("purchased_year", "").strip() or None,
     )
     db.session.add(item)
     db.session.commit()
@@ -126,6 +128,10 @@ def update_item(item, data):
         item.listing_type = data["listing_type"]
     if "image_url" in data:
         item.image_url = data["image_url"]
+    if "purchased_from" in data:
+        item.purchased_from = data["purchased_from"].strip() or None
+    if "purchased_year" in data:
+        item.purchased_year = data["purchased_year"].strip() or None
     db.session.commit()
     return item
 
