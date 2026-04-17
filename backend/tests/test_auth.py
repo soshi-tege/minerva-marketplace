@@ -1,5 +1,5 @@
 import pytest
-from app import app
+from backend.app import app
 
 
 @pytest.fixture
@@ -7,7 +7,7 @@ def client():
     app.config["TESTING"] = True
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     with app.app_context():
-        from models import db
+        from backend.models import db
         db.create_all()
         yield app.test_client()
         db.drop_all()

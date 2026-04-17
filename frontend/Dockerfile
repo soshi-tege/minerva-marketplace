@@ -2,7 +2,7 @@
 FROM node:22
 
 # initiate the app in the root directory
-WORKDIR /.
+WORKDIR /app
 
 # copy package.json and package-lock.json
 COPY package*.json ./
@@ -13,4 +13,6 @@ RUN npm install
 COPY . .
 
 # Run the app after docker image is built
-CMD ["npm", "start"]
+RUN npm run build
+EXPOSE 3000
+CMD ["npx", "serve", "-s", "build", "-l", "3000"]

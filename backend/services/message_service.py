@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-from sqlalchemy import func, or_
-from sqlalchemy.orm import aliased, joinedload
-
-from models import db, Conversation, Message, Item
-=======
 from datetime import datetime, timezone
 from ..models import db, Conversation, Message, Item
->>>>>>> cc21b9857c8c8022e840485eb1e46cd8c017ebd9
 
 
 def get_conversations(user_id):

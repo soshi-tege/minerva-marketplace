@@ -4,6 +4,8 @@ services:
       context: ./backend
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/minerva
+      PYTHONPATH: /app
+      JWT_SECRET_KEY: 3def17005208c04f275312db6569583d2f9ea486af0649f494bd9f1ec3ff3708
     ports:
       - "5001:5001"
     depends_on:
@@ -23,5 +25,7 @@ services:
       context: ./frontend
     ports:
       - "3000:3000"
+    environment:
+      REACT_APP_API_ORIGIN: http://localhost:5001
     depends_on:
       - backend

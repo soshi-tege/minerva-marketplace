@@ -2,7 +2,8 @@
 FROM python:3.11-slim
 
 # set the working directory
-WORKDIR /.
+WORKDIR /app/backend
+ENV PYTHONPATH=/app
 
 # copy requirements in the home directory
 COPY requirements.txt ./
