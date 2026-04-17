@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..models import Item
-from ..services import message_service
+from models import Item
+from services import message_service
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/api/me")
 

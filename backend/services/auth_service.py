@@ -1,6 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
-from ..models import db, User
+from models import db, User
 
 CITIES = ["San Francisco", "Buenos Aires", "Hyderabad", "Taipei", "Seoul", "Tokyo", "Berlin"]
 

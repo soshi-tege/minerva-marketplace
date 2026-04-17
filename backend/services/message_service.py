@@ -1,7 +1,7 @@
 from sqlalchemy import func, or_
 from sqlalchemy.orm import aliased, joinedload
 
-from ..models import db, Conversation, Message, Item
+from models import db, Conversation, Message, Item
 
 
 def _latest_message_subquery():

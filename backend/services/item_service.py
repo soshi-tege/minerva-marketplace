@@ -1,4 +1,4 @@
-from ..models import db, Item
+from models import db, Item
 
 VALID_CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"]
 VALID_CONDITIONS = ["New", "Like New", "Good", "Fair"]

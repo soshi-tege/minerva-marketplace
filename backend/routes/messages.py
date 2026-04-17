@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..services import message_service
+from services import message_service
 
 messages_bp = Blueprint("messages", __name__, url_prefix="/api/messages")
 

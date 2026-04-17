@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
-from ..services import item_service
+from services import item_service
 
 items_bp = Blueprint("items", __name__, url_prefix="/api")
 

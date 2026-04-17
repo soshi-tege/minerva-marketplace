@@ -2,11 +2,11 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from backend.models import db
-from backend.routes.auth import auth_bp
-from backend.routes.items import items_bp
-from backend.routes.messages import messages_bp
-from backend.routes.dashboard import dashboard_bp
+from models import db
+from routes.auth import auth_bp
+from routes.items import items_bp
+from routes.messages import messages_bp
+from routes.dashboard import dashboard_bp
 
 
 def create_app():
