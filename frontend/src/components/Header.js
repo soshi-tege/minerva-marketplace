@@ -31,16 +31,18 @@ export default function Header() {
         </Link>
         <nav className="nav-links">
           <NavLink to="/" end>Home</NavLink>
-          <NavLink to="/items">Browse</NavLink>
-          <NavLink to="/post">Post item</NavLink>
-          <NavLink to="/messages">
-            Messages{unreadCount > 0 && (
-              <span className="unread-badge">
-                {unreadCount}
-              </span>
-            )}
-          </NavLink>
-          <NavLink to="/dashboard">Dashboard</NavLink>
+          {isAuthenticated && (
+            <>
+              <NavLink to="/items">Browse</NavLink>
+              <NavLink to="/post">Post item</NavLink>
+              <NavLink to="/messages">
+                Messages{unreadCount > 0 && (
+                  <span className="unread-badge">{unreadCount}</span>
+                )}
+              </NavLink>
+              <NavLink to="/dashboard">Dashboard</NavLink>
+            </>
+          )}
         </nav>
         <div className="nav-auth">
           <button type="button" className="theme-toggle" onClick={() => setDark(d => !d)} title={dark ? "Switch to light mode" : "Switch to dark mode"}>
