@@ -28,6 +28,9 @@ instance/
 # Node
 node_modules/
 
+# Environment files
+.env
+
 
 # Uploaded listing images (keep folder via .gitkeep)
 backend/static/uploads/*
