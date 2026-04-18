@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    message_upload_dir = os.path.join(base_dir, "static", "uploads", "messages")
 
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
         "DATABASE_URL", "sqlite:///app.db"
@@ -32,6 +34,8 @@ def create_app():
     allowed_origins = os.environ.get("CORS_ORIGINS", "*")
     cors_origins = allowed_origins.split(",") if allowed_origins != "*" else "*"
 
+    app.config["MESSAGE_UPLOAD_FOLDER"] = message_upload_dir
+
     db.init_app(app)
     migrate.init_app(app, db)
     JWTManager(app)
@@ -46,6 +50,10 @@ def create_app():
     def health():
         return jsonify({"status": "ok"})
 
+    @app.route("/uploads/messages/<path:filename>")
+    def serve_message_upload(filename):
+        return send_from_directory(app.config["MESSAGE_UPLOAD_FOLDER"], filename)
+
     logger.info("App created. Database: %s", app.config["SQLALCHEMY_DATABASE_URI"])
     return app
 
@@ -59,8 +67,10 @@ if __name__ == "__main__":
         # Run: flask db upgrade
         # For convenience in dev, create tables if none exist (fresh DB).
         from sqlalchemy import inspect as sa_inspect
+
         inspector = sa_inspect(db.engine)
         if not inspector.get_table_names():
             from flask_migrate import upgrade
+
             upgrade()
     app.run(port=port, debug=True)

@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Toast({ notifications, onDismiss }) {
+export default function Toast({ notifications, onDismiss, onOpen }) {
   if (notifications.length === 0) return null;
 
   return (
@@ -16,7 +16,7 @@ export default function Toast({ notifications, onDismiss }) {
       {notifications.map((n) => (
         <div
           key={n.id}
-          onClick={() => onDismiss(n.id)}
+          onClick={() => onOpen(n)}
           style={{
             background: "#222",
             color: "white",
@@ -31,7 +31,29 @@ export default function Toast({ notifications, onDismiss }) {
           <strong style={{ display: "block", marginBottom: "2px" }}>
             New message
           </strong>
-          {n.message}
+          <div style={{ marginBottom: 10 }}>{n.message}</div>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpen(n);
+              }}
+              style={{ padding: "4px 8px", fontSize: 12, background: "#c0392b" }}
+            >
+              Open
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDismiss(n.id);
+              }}
+              style={{ padding: "4px 8px", fontSize: 12, background: "#444" }}
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       ))}
     </div>

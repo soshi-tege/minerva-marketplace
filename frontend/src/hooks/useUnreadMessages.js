@@ -12,9 +12,9 @@ export function useUnreadMessages(isAuthenticated) {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
-  const navigateToMessages = useCallback((id) => {
-    dismiss(id);
-    navigate("/messages");
+  const navigateToConversation = useCallback((notification) => {
+    dismiss(notification.id);
+    navigate(`/messages?convo=${notification.convoId}`);
   }, [dismiss, navigate]);
 
   useEffect(() => {
@@ -32,15 +32,20 @@ export function useUnreadMessages(isAuthenticated) {
 
         convos.forEach((convo) => {
           const prevConvo = prev.find((c) => c.id === convo.id);
+          const currentFingerprint = `${convo.last_message || ""}-${convo.last_message_has_image ? "img" : "text"}`;
+          const prevFingerprint = prevConvo
+            ? `${prevConvo.last_message || ""}-${prevConvo.last_message_has_image ? "img" : "text"}`
+            : "";
           const isNewMessage =
-            convo.last_message &&
-            (!prevConvo || prevConvo.last_message !== convo.last_message);
+            (convo.last_message || convo.last_message_has_image) &&
+            (!prevConvo || prevFingerprint !== currentFingerprint);
 
           if (isNewMessage) {
             const id = `${convo.id}-${Date.now()}`;
+            const preview = convo.last_message || "Sent an image";
             const notification = {
               id,
-              message: `${convo.other_user}: "${convo.last_message}"`,
+              message: `${convo.other_user}: "${preview}"`,
               convoId: convo.id,
             };
 
@@ -65,5 +70,5 @@ export function useUnreadMessages(isAuthenticated) {
     return () => clearInterval(interval);
   }, [isAuthenticated, location.pathname]);
 
-  return { notifications, navigateToMessages };
+  return { notifications, dismiss, navigateToConversation };
 }

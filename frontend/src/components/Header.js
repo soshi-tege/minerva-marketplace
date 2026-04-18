@@ -35,15 +35,7 @@ export default function Header() {
           <NavLink to="/post">Post item</NavLink>
           <NavLink to="/messages">
             Messages{unreadCount > 0 && (
-              <span style={{
-                background: "#c0392b",
-                color: "white",
-                borderRadius: "10px",
-                padding: "1px 6px",
-                fontSize: "11px",
-                marginLeft: "4px",
-                fontWeight: 700,
-              }}>
+              <span className="unread-badge">
                 {unreadCount}
               </span>
             )}

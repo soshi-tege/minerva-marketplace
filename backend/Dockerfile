@@ -2,8 +2,7 @@
 FROM python:3.11-slim
 
 # set the working directory
-WORKDIR /app/backend
-ENV PYTHONPATH=/app
+WORKDIR /app
 
 # copy requirements in the home directory
 COPY requirements.txt ./
@@ -15,5 +14,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # run the application after the image is built
-ENTRYPOINT ["python"]
-CMD ["app.py"]
+CMD ["python", "-m", "backend.app"]

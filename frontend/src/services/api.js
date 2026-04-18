@@ -30,14 +30,18 @@ export const getMessages = async (convoId) => {
   return res.json();
 };
 
-export const sendMessage = async (convoId, body) => {
+export const sendMessage = async (convoId, { body, imageFile }) => {
+  const form = new FormData();
+  form.append("body", body || "");
+  if (imageFile) {
+    form.append("image", imageFile);
+  }
   const res = await fetch(`${API_BASE}/messages/conversations/${convoId}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${getToken()}`,
     },
-    body: JSON.stringify({ body }),
+    body: form,
   });
   return res.json();
 };
@@ -49,6 +53,25 @@ export const getUnreadCount = async () => {
   if (!res.ok) return 0;
   const data = await res.json();
   return data.unread_count ?? 0;
+};
+
+export const editMessage = async (msgId, body) => {
+  const res = await fetch(`${API_BASE}/messages/${msgId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify({ body }),
+  });
+  return res.json();
+};
+
+export const deleteMessage = async (msgId) => {
+  await fetch(`${API_BASE}/messages/${msgId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
 };
 
 export const markConversationRead = async (convoId) => {

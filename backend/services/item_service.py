@@ -1,6 +1,7 @@
 import os
 import uuid
 from flask import current_app
+from sqlalchemy import or_
 from werkzeug.utils import secure_filename
 from ..models import db, Item
 
@@ -8,6 +9,23 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 VALID_CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"]
+
+SYNONYMS = {
+    "earbuds": "headphones",
+    "headphones": "earbuds",
+    "laptop": "notebook",
+    "notebook": "laptop",
+    "sofa": "couch",
+    "couch": "sofa",
+    "fridge": "refrigerator",
+    "refrigerator": "fridge",
+    "phone": "smartphone",
+    "smartphone": "phone",
+    "bike": "bicycle",
+    "bicycle": "bike",
+    "tv": "television",
+    "television": "tv",
+}
 VALID_CONDITIONS = ["New", "Like New", "Good", "Fair"]
 VALID_LISTING_TYPES = ["offering", "request"]
 VALID_SORT_OPTIONS = {"newest", "oldest", "price_asc", "price_desc"}
@@ -47,6 +65,10 @@ def validate_item_data(data, require_all=True):
     if listing_type and listing_type not in VALID_LISTING_TYPES:
         errors["listing_type"] = "Must be 'offering' or 'request'."
 
+    purchased_year = data.get("purchased_year", "").strip() if data.get("purchased_year") else ""
+    if purchased_year and (not purchased_year.isdigit() or len(purchased_year) != 4):
+        errors["purchased_year"] = "Must be a 4-digit year."
+
     location = data.get("location", "").strip() if data.get("location") else ""
     if require_all and not location:
         errors["location"] = "Location is required."
@@ -69,7 +91,17 @@ def list_items(city=None, listing_type=None, category=None, q=None, sort="newest
         query = query.filter(Item.category == category)
     if q:
         pattern = f"%{q}%"
-        query = query.filter(Item.title.ilike(pattern) | Item.description.ilike(pattern))
+        canonical = SYNONYMS.get(q.lower())
+        if canonical:
+            alt_pattern = f"%{canonical}%"
+            query = query.filter(
+                or_(
+                    Item.title.ilike(pattern) | Item.description.ilike(pattern),
+                    Item.title.ilike(alt_pattern) | Item.description.ilike(alt_pattern),
+                )
+            )
+        else:
+            query = query.filter(Item.title.ilike(pattern) | Item.description.ilike(pattern))
     if min_price is not None:
         query = query.filter(Item.price >= min_price)
     if max_price is not None:
@@ -116,6 +148,8 @@ def create_item(seller_id, data):
         location=data.get("location", "").strip(),
         description=data.get("description", "").strip(),
         image_url=data.get("image_url"),
+        purchased_from=data.get("purchased_from", "").strip() or None,
+        purchased_year=data.get("purchased_year", "").strip() or None,
     )
     db.session.add(item)
     db.session.commit()
@@ -142,6 +176,10 @@ def update_item(item, data):
         item.listing_type = data["listing_type"]
     if "image_url" in data:
         item.image_url = data["image_url"]
+    if "purchased_from" in data:
+        item.purchased_from = data["purchased_from"].strip() or None
+    if "purchased_year" in data:
+        item.purchased_year = data["purchased_year"].strip() or None
     db.session.commit()
     return item
 
