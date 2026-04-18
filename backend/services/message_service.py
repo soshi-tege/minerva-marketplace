@@ -12,6 +12,9 @@ def get_conversations(user_id):
     for c in convos:
         other = c.seller if c.buyer_id == user_id else c.buyer
         last_msg = next((m for m in reversed(c.messages) if not m.deleted_at), None)
+        # Don't show empty conversations to the seller — only show after buyer sends a message
+        if not last_msg and c.seller_id == user_id:
+            continue
         result.append({
             "id": c.id,
             "item_id": c.item_id,
