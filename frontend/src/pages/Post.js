@@ -113,7 +113,9 @@ export default function Post() {
       body.append("location", form.location);
       body.append("description", form.description.trim());
       body.append("listing_type", listingType);
-      body.append("price_cents", String(priceCents));
+      if (priceCents > 0) {
+        body.append("price_cents", String(priceCents));
+      }
 
       if (listingType === "offering") {
         body.append("condition", form.condition);
