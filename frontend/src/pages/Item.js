@@ -114,24 +114,24 @@ export default function Item() {
           </p>
           <p>{item.description}</p>
           {(item.purchased_from || item.purchased_year) && (
-            <p style={{ color: "#666", fontSize: "0.9rem" }}>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
               🛒 Bought
               {item.purchased_from ? ` from ${item.purchased_from}` : ""}
               {item.purchased_year ? ` in ${item.purchased_year}` : ""}
             </p>
           )}
-          <p style={{ color: "#666", fontSize: "0.9rem" }}>📍 {item.location}</p>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>📍 {item.location}</p>
           <p
             style={{
               fontSize: "13px",
-              color: item.status === "active" ? "#27ae60" : "#888",
+              color: item.status === "active" ? "var(--success)" : "var(--text-faint)",
               fontWeight: 600,
               textTransform: "capitalize",
             }}
           >
             Status: {item.status}
           </p>
-          {deleteError && <p style={{ color: "#c0392b", marginTop: 8 }}>{deleteError}</p>}
+          {deleteError && <p style={{ color: "var(--accent)", marginTop: 8 }}>{deleteError}</p>}
           <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
             {isSeller ? (
               <>
@@ -160,16 +160,16 @@ export default function Item() {
               style={{
                 marginTop: 24,
                 padding: "16px",
-                background: "#f9f9f9",
+                background: "var(--bg)",
                 borderRadius: "8px",
-                borderTop: "1px solid #eee",
+                borderTop: "1px solid var(--border-light)",
               }}
             >
               <p
                 style={{
                   margin: "0 0 6px 0",
                   fontSize: "13px",
-                  color: "#999",
+                  color: "var(--text-faint)",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                 }}
@@ -179,10 +179,10 @@ export default function Item() {
               <p style={{ margin: "0 0 4px 0", fontWeight: 600 }}>
                 {item.seller.first_name} {item.seller.last_name}
               </p>
-              <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "#666" }}>
+              <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "var(--text-muted)" }}>
                 {item.seller.city} · Cohort {item.seller.cohort}
               </p>
-              <p style={{ margin: 0, fontSize: "13px", color: "#999" }}>
+              <p style={{ margin: 0, fontSize: "13px", color: "var(--text-faint)" }}>
                 Member since{" "}
                 {new Date(item.seller.created_at).toLocaleDateString("en-US", {
                   month: "long",

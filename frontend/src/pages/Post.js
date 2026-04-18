@@ -181,25 +181,25 @@ export default function Post() {
   return (
     <Body>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-        <button onClick={() => { resetFormState(); setListingType(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: "0.9rem" }}>
+        <button onClick={() => { resetFormState(); setListingType(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-faint)", fontSize: "0.9rem" }}>
           Back
         </button>
         <Heading level={2}>{isOffering ? "Sell an item" : "Post a request"}</Heading>
       </div>
 
       <form className="card" onSubmit={handleSubmit} noValidate>
-        {error && <p style={{ color: "#c0392b", marginBottom: 12 }}>{error}</p>}
+        {error && <p style={{ color: "var(--accent)", marginBottom: 12 }}>{error}</p>}
 
         <label htmlFor="title">{isOffering ? "Item name" : "What are you looking for?"} *</label>
         <input id="title" name="title" placeholder={isOffering ? "e.g. Rice cooker" : "e.g. Desk lamp"} value={form.title} onChange={handleChange} />
-        {fieldErrors.title && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.title}</p>}
+        {fieldErrors.title && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.title}</p>}
 
         <label htmlFor="category">Category *</label>
         <select id="category" name="category" value={form.category} onChange={handleChange}>
           <option value="">Select a category</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        {fieldErrors.category && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.category}</p>}
+        {fieldErrors.category && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.category}</p>}
 
         {isOffering && (
           <>
@@ -208,7 +208,7 @@ export default function Post() {
               <option value="">Select condition</option>
               {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
-            {fieldErrors.condition && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.condition}</p>}
+            {fieldErrors.condition && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.condition}</p>}
           </>
         )}
 
@@ -216,13 +216,13 @@ export default function Post() {
           <>
             <label htmlFor="price">Price ($) *</label>
             <input id="price" name="price" type="number" min="0" step="0.01" placeholder="e.g. 25 (enter 0 for free)" value={form.price} onChange={handleChange} />
-            {fieldErrors.price && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.price}</p>}
+            {fieldErrors.price && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.price}</p>}
           </>
         ) : (
           <>
             <label htmlFor="budget">Maximum budget ($) <span style={{ color: "#888" }}>(optional)</span></label>
             <input id="budget" name="budget" type="number" min="0" step="0.01" placeholder="e.g. 50" value={form.budget} onChange={handleChange} />
-            {fieldErrors.budget && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.budget}</p>}
+            {fieldErrors.budget && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.budget}</p>}
           </>
         )}
 
@@ -231,7 +231,7 @@ export default function Post() {
           <option value="">Select a city</option>
           {MINERVA_CITIES.map((city) => <option key={city} value={city}>{city}</option>)}
         </select>
-        {fieldErrors.location && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.location}</p>}
+        {fieldErrors.location && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.location}</p>}
 
         {isOffering && (
           <>
@@ -240,7 +240,7 @@ export default function Post() {
 
             <label htmlFor="purchasedYear">Year purchased <span style={{ color: "#888" }}>(optional)</span></label>
             <input id="purchasedYear" name="purchasedYear" placeholder="e.g. 2023" maxLength={4} value={form.purchasedYear} onChange={handleChange} />
-            {fieldErrors.purchased_year && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.purchased_year}</p>}
+            {fieldErrors.purchased_year && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.purchased_year}</p>}
           </>
         )}
 

@@ -4,6 +4,7 @@ import Button from "../components/Button";
 import API_BASE from "../config";
 import emptyState from "../assets/empty-state.svg";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const CATEGORIES = ["All", "Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"];
 const SORTS = [
@@ -15,7 +16,8 @@ const SORTS = [
 const PER_PAGE = 20;
 
 export default function Items() {
-  const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
+  const { user } = useAuth();
+
 
   const [tab, setTab] = useState("offering");
   const [items, setItems] = useState([]);
@@ -98,17 +100,17 @@ export default function Items() {
               placeholder="Search items..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}
+              style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--input-border)", fontSize: "14px" }}
             />
             <Button style="btn-primary" type="submit">Search</Button>
           </form>
-          <select value={category} onChange={e => setCategory(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={category} onChange={e => setCategory(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--input-border)", fontSize: "14px" }}>
             {CATEGORIES.map(c => <option key={c}>{c}</option>)}
           </select>
-          <select value={sort} onChange={e => setSort(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={sort} onChange={e => setSort(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--input-border)", fontSize: "14px" }}>
             {SORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
-          <select value={city} onChange={e => setCity(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={city} onChange={e => setCity(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--input-border)", fontSize: "14px" }}>
             <option value="">All cities</option>
             {cities.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -118,7 +120,7 @@ export default function Items() {
             value={minPrice}
             onChange={e => setMinPrice(e.target.value)}
             min="0"
-            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px", width: "80px" }}
+            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--input-border)", fontSize: "14px", width: "80px" }}
           />
           <input
             type="number"
@@ -126,12 +128,12 @@ export default function Items() {
             value={maxPrice}
             onChange={e => setMaxPrice(e.target.value)}
             min="0"
-            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px", width: "80px" }}
+            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid var(--input-border)", fontSize: "14px", width: "80px" }}
           />
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "4px", marginBottom: "20px", borderBottom: "2px solid #eee" }}>
+      <div style={{ display: "flex", gap: "4px", marginBottom: "20px", borderBottom: "2px solid var(--border-light)" }}>
         {[["offering", "Items for Sale"], ["request", "Requests"]].map(([val, label]) => (
           <button
             key={val}
@@ -143,8 +145,8 @@ export default function Items() {
               cursor: "pointer",
               fontSize: "14px",
               fontWeight: tab === val ? 700 : 400,
-              color: tab === val ? "#c0392b" : "#666",
-              borderBottom: tab === val ? "2px solid #c0392b" : "2px solid transparent",
+              color: tab === val ? "var(--accent)" : "var(--text-muted)",
+              borderBottom: tab === val ? "2px solid var(--accent)" : "2px solid transparent",
               marginBottom: "-2px",
             }}
           >
@@ -154,12 +156,12 @@ export default function Items() {
       </div>
 
       {loading && <p className="empty-state">Loading items...</p>}
-      {error && <p className="empty-state" style={{ color: "#c0392b" }}>{error}</p>}
+      {error && <p className="empty-state" style={{ color: "var(--accent)" }}>{error}</p>}
       {!loading && !initialLoad && !error && items.length === 0 && (
         <div className="empty-state">
           <img src={emptyState} alt="No items" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
           <div style={{ fontWeight: 500, marginBottom: 8 }}>No listings yet</div>
-          <div style={{ color: '#888', marginBottom: 16 }}>Looks like there's nothing here yet.</div>
+          <div style={{ color: 'var(--text-faint)', marginBottom: 16 }}>Looks like there's nothing here yet.</div>
           <Link to="/post" style={{ textDecoration: 'none' }}>
             <Button style="btn-primary">Post an item</Button>
           </Link>
@@ -167,7 +169,7 @@ export default function Items() {
       )}
 
       <div className="grid">
-        {items.map(item => <ItemCard key={item.id} item={item} currentUserId={storedUser?.id} />)}
+        {items.map(item => <ItemCard key={item.id} item={item} currentUserId={user?.id} />)}
       </div>
 
       {hasMore && (
@@ -175,7 +177,7 @@ export default function Items() {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            style={{ padding: "10px 24px", borderRadius: "6px", background: "#c0392b", color: "#fff", border: "none", cursor: "pointer", fontSize: "14px" }}
+            style={{ padding: "10px 24px", borderRadius: "6px", background: "var(--accent)", color: "#fff", border: "none", cursor: "pointer", fontSize: "14px" }}
           >
             {loadingMore ? "Loading..." : "Load more"}
           </button>
