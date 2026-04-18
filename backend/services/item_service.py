@@ -1,6 +1,31 @@
+import os
+import uuid
+from flask import current_app
+from sqlalchemy import or_
+from werkzeug.utils import secure_filename
 from ..models import db, Item
 
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
 VALID_CATEGORIES = ["Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"]
+
+SYNONYMS = {
+    "earbuds": "headphones",
+    "headphones": "earbuds",
+    "laptop": "notebook",
+    "notebook": "laptop",
+    "sofa": "couch",
+    "couch": "sofa",
+    "fridge": "refrigerator",
+    "refrigerator": "fridge",
+    "phone": "smartphone",
+    "smartphone": "phone",
+    "bike": "bicycle",
+    "bicycle": "bike",
+    "tv": "television",
+    "television": "tv",
+}
 VALID_CONDITIONS = ["New", "Like New", "Good", "Fair"]
 VALID_LISTING_TYPES = ["offering", "request"]
 VALID_SORT_OPTIONS = {"newest", "oldest", "price_asc", "price_desc"}
@@ -40,6 +65,10 @@ def validate_item_data(data, require_all=True):
     if listing_type and listing_type not in VALID_LISTING_TYPES:
         errors["listing_type"] = "Must be 'offering' or 'request'."
 
+    purchased_year = data.get("purchased_year", "").strip() if data.get("purchased_year") else ""
+    if purchased_year and (not purchased_year.isdigit() or len(purchased_year) != 4):
+        errors["purchased_year"] = "Must be a 4-digit year."
+
     location = data.get("location", "").strip() if data.get("location") else ""
     if require_all and not location:
         errors["location"] = "Location is required."
@@ -47,8 +76,11 @@ def validate_item_data(data, require_all=True):
     return errors
 
 
-def list_items(city=None, listing_type=None, category=None, q=None, sort="newest", page=1, per_page=20):
-    """Query items with composable filters, search, sort, and pagination."""
+def list_items(city=None, listing_type=None, category=None, q=None, sort="newest",
+               page=1, per_page=20, min_price=None, max_price=None):
+    """Query items with composable filters, search, sort, and pagination.
+    Sold items are always pushed to the bottom of results."""
+    from sqlalchemy import case
     query = Item.query
 
     if city:
@@ -59,16 +91,32 @@ def list_items(city=None, listing_type=None, category=None, q=None, sort="newest
         query = query.filter(Item.category == category)
     if q:
         pattern = f"%{q}%"
-        query = query.filter(Item.title.ilike(pattern) | Item.description.ilike(pattern))
+        canonical = SYNONYMS.get(q.lower())
+        if canonical:
+            alt_pattern = f"%{canonical}%"
+            query = query.filter(
+                or_(
+                    Item.title.ilike(pattern) | Item.description.ilike(pattern),
+                    Item.title.ilike(alt_pattern) | Item.description.ilike(alt_pattern),
+                )
+            )
+        else:
+            query = query.filter(Item.title.ilike(pattern) | Item.description.ilike(pattern))
+    if min_price is not None:
+        query = query.filter(Item.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Item.price <= max_price)
+
+    sold_order = case((Item.status == "sold", 1), else_=0)
 
     if sort == "oldest":
-        query = query.order_by(Item.created_at.asc())
+        query = query.order_by(sold_order, Item.created_at.asc())
     elif sort == "price_asc":
-        query = query.order_by(Item.price.asc())
+        query = query.order_by(sold_order, Item.price.asc())
     elif sort == "price_desc":
-        query = query.order_by(Item.price.desc())
+        query = query.order_by(sold_order, Item.price.desc())
     else:
-        query = query.order_by(Item.created_at.desc())
+        query = query.order_by(sold_order, Item.created_at.desc())
 
     total = query.count()
     items = query.offset((page - 1) * per_page).limit(per_page).all()
@@ -100,6 +148,8 @@ def create_item(seller_id, data):
         location=data.get("location", "").strip(),
         description=data.get("description", "").strip(),
         image_url=data.get("image_url"),
+        purchased_from=data.get("purchased_from", "").strip() or None,
+        purchased_year=data.get("purchased_year", "").strip() or None,
     )
     db.session.add(item)
     db.session.commit()
@@ -126,6 +176,10 @@ def update_item(item, data):
         item.listing_type = data["listing_type"]
     if "image_url" in data:
         item.image_url = data["image_url"]
+    if "purchased_from" in data:
+        item.purchased_from = data["purchased_from"].strip() or None
+    if "purchased_year" in data:
+        item.purchased_year = data["purchased_year"].strip() or None
     db.session.commit()
     return item
 
@@ -136,6 +190,45 @@ def delete_item(item):
     db.session.commit()
 
 
+def save_upload(file):
+    """Validate and save an uploaded image file.
+    Returns the image URL path or raises ValueError.
+    Uses UPLOAD_DIR env var if set; defaults to static/uploads/ for local dev.
+    Production deployments should use a persistent volume or object storage."""
+    if not file or not file.filename:
+        return None
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ValueError(f"File type not allowed. Use: {', '.join(ALLOWED_EXTENSIONS)}")
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_FILE_SIZE:
+        raise ValueError("File too large. Maximum size is 5 MB.")
+
+    upload_dir = os.environ.get("UPLOAD_DIR") or os.path.join(current_app.root_path, "static", "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    file.save(os.path.join(upload_dir, filename))
+    return f"/static/uploads/{filename}"
+
+
+def get_user_listings(user_id):
+    """Return (active, sold) item lists for a user's dashboard."""
+    all_items = Item.query.filter_by(seller_id=user_id).order_by(Item.created_at.desc()).all()
+    active = [i.to_dict() for i in all_items if i.status == "active"]
+    sold = [i.to_dict() for i in all_items if i.status == "sold"]
+    return active, sold
+
+
 def get_categories():
     """Return the list of valid categories."""
     return VALID_CATEGORIES
+
+
+def get_cities():
+    """Return distinct item locations."""
+    rows = db.session.query(Item.location).filter(Item.location.isnot(None)).distinct().all()
+    return sorted([r[0] for r in rows if r[0]])

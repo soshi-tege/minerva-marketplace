@@ -1,5 +1,5 @@
-export default function Button({ children, style, onClick }) {
+export default function Button({ children, style, onClick, ...props }) {
     return (
-        <button className={style} onClick={onClick}>{children}</button>
+        <button className={style} onClick={onClick} {...props}>{children}</button>
     )
 }

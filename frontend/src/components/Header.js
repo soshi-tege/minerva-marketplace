@@ -1,15 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getUnreadCount } from "../services/api";
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
   const [dark, setDark] = useState(() => localStorage.getItem("theme") === "dark");
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
     localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const fetchCount = () => {
+      getUnreadCount().then(setUnreadCount);
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 5000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   return (
     <header>
@@ -21,12 +33,18 @@ export default function Header() {
           <NavLink to="/" end>Home</NavLink>
           <NavLink to="/items">Browse</NavLink>
           <NavLink to="/post">Post item</NavLink>
-          <NavLink to="/messages">Messages</NavLink>
+          <NavLink to="/messages">
+            Messages{unreadCount > 0 && (
+              <span className="unread-badge">
+                {unreadCount}
+              </span>
+            )}
+          </NavLink>
           <NavLink to="/dashboard">Dashboard</NavLink>
         </nav>
         <div className="nav-auth">
           <button type="button" className="theme-toggle" onClick={() => setDark(d => !d)} title={dark ? "Switch to light mode" : "Switch to dark mode"}>
-            {dark ? "\u2600\uFE0F" : "\uD83C\uDF19"}
+            {dark ? "☀️" : "🌙"}
           </button>
           {isAuthenticated ? (
             <>

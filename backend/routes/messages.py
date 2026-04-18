@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..services import message_service
+from ..utils.message_media import save_message_image
 
 messages_bp = Blueprint("messages", __name__, url_prefix="/api/messages")
 
@@ -33,9 +34,62 @@ def get_messages(convo_id):
 @jwt_required()
 def send_message(convo_id):
     user_id = int(get_jwt_identity())
-    data = request.get_json()
-    msg = message_service.send_message(convo_id, user_id, data["body"])
+    body = ""
+    image_url = None
+    if request.content_type and "multipart/form-data" in request.content_type:
+        body = (request.form.get("body") or "").strip()
+        file = request.files.get("image")
+        if file and file.filename:
+            try:
+                upload_dir = current_app.config["MESSAGE_UPLOAD_FOLDER"]
+                image_url = save_message_image(file, upload_dir)
+            except ValueError as e:
+                return jsonify({"error": str(e)}), 400
+    else:
+        data = request.get_json(silent=True) or {}
+        body = (data.get("body") or "").strip()
+        image_url = data.get("image_url")
+        if image_url is not None:
+            if not isinstance(image_url, str) or ".." in image_url or not image_url.startswith(
+                "/uploads/messages/"
+            ):
+                return jsonify({"error": "Invalid image_url."}), 400
+
+    if not body and not image_url:
+        return jsonify({"error": "Message body or image is required."}), 400
+
+    try:
+        msg = message_service.send_message(convo_id, user_id, body=body, image_url=image_url)
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     return jsonify(msg.to_dict()), 201
+
+
+@messages_bp.put("/<int:msg_id>")
+@jwt_required()
+def edit_message(msg_id):
+    user_id = int(get_jwt_identity())
+    data = request.get_json()
+    try:
+        msg = message_service.edit_message(msg_id, user_id, data.get("body", ""))
+        return jsonify(msg.to_dict())
+    except PermissionError:
+        return jsonify({"error": "Forbidden"}), 403
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@messages_bp.delete("/<int:msg_id>")
+@jwt_required()
+def delete_message(msg_id):
+    user_id = int(get_jwt_identity())
+    try:
+        message_service.delete_message(msg_id, user_id)
+        return jsonify({"ok": True})
+    except PermissionError:
+        return jsonify({"error": "Forbidden"}), 403
 
 
 @messages_bp.get("/unread-count")
@@ -44,3 +98,11 @@ def unread_count():
     user_id = int(get_jwt_identity())
     count = message_service.get_unread_count(user_id)
     return jsonify({"unread_count": count})
+
+
+@messages_bp.post("/conversations/<int:convo_id>/read")
+@jwt_required()
+def mark_read(convo_id):
+    user_id = int(get_jwt_identity())
+    message_service.mark_conversation_read(convo_id, user_id)
+    return jsonify({"ok": True})

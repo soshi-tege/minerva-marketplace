@@ -33,7 +33,7 @@ class Item(db.Model):
     seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    price = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Integer, nullable=False)  # stored in cents (e.g. 5000 = $50.00)
     currency = db.Column(db.String(10), nullable=False, default="USD")
     category = db.Column(db.String(100), nullable=False)
     condition = db.Column(db.String(50), nullable=False)
@@ -41,6 +41,8 @@ class Item(db.Model):
     status = db.Column(db.String(50), nullable=False, default="active")
     location = db.Column(db.String(255), nullable=True)
     image_url = db.Column(db.String(500), nullable=True)
+    purchased_from = db.Column(db.String(255), nullable=True)
+    purchased_year = db.Column(db.String(10), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     seller = db.relationship("User", back_populates="items")
@@ -59,6 +61,8 @@ class Item(db.Model):
             "status": self.status,
             "location": self.location,
             "image_url": self.image_url,
+            "purchased_from": self.purchased_from,
+            "purchased_year": self.purchased_year,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
@@ -81,10 +85,10 @@ class Conversation(db.Model):
     buyer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
-    item = db.relationship("Item", backref="conversations")
+    item = db.relationship("Item", backref=db.backref("conversations", cascade="all, delete-orphan"))
     buyer = db.relationship("User", foreign_keys=[buyer_id], backref="buying_conversations")
     seller = db.relationship("User", foreign_keys=[seller_id], backref="selling_conversations")
-    messages = db.relationship("Message", back_populates="conversation", order_by="Message.created_at")
+    messages = db.relationship("Message", back_populates="conversation", order_by="Message.created_at", cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -103,7 +107,10 @@ class Message(db.Model):
     conversation_id = db.Column(db.Integer, db.ForeignKey("conversations.id"), nullable=False)
     sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     body = db.Column(db.Text, nullable=False)
+    image_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    read_at = db.Column(db.DateTime, nullable=True)
+    deleted_at = db.Column(db.DateTime, nullable=True)
     conversation = db.relationship("Conversation", back_populates="messages")
     sender = db.relationship("User", backref="messages")
 
@@ -113,6 +120,8 @@ class Message(db.Model):
             "conversation_id": self.conversation_id,
             "sender_id": self.sender_id,
             "sender_name": self.sender.first_name,
-            "body": self.body,
+            "body": "[deleted]" if self.deleted_at else self.body,
+            "deleted": bool(self.deleted_at),
             "created_at": self.created_at.isoformat(),
+            "read_at": self.read_at.isoformat() if self.read_at else None,
         }

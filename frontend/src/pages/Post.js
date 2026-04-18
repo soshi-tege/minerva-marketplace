@@ -5,6 +5,7 @@ import API_BASE from "../config";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
+import { useAuth } from "../context/AuthContext";
 
 const CATEGORIES = [
   "Appliance",
@@ -41,11 +42,19 @@ const EMPTY_FORM = {
 
 export default function Post() {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { user } = useAuth();
 
-  const [listingType, setListingType] = useState(null); // "offering" | "request"
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [form, setForm] = useState({
+    title: "",
+    category: "Appliance",
+    condition: "Good",
+    price: "",
+    location: "",
+    pickupBy: "",
+    purchasedFrom: "",
+    purchasedYear: "",
+    description: "",
+  });
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -126,26 +135,30 @@ export default function Post() {
     setLoading(true);
 
     try {
-      let priceCents = 0;
+      const priceCents =
+        form.price.trim().toLowerCase() === "free" || form.price.trim() === ""
+          ? 0
+          : isNaN(Number(form.price))
+            ? 0
+            : Math.round(Number(form.price) * 100);
 
-      if (listingType === "offering") {
-        priceCents = Math.round(Number(form.price.trim()) * 100);
-      } else if (form.budget.trim() !== "") {
-        priceCents = Math.round(Number(form.budget.trim()) * 100);
+      const token = user?.token;
+      if (!token) {
+        setError("Please log in before posting an item.");
+        setLoading(false);
+        return;
       }
 
       const body = new FormData();
       body.append("title", form.title.trim());
       body.append("category", form.category);
-      body.append("location", form.location);
-      body.append("description", form.description.trim());
-      body.append("listing_type", listingType);
+      body.append("condition", form.condition);
+      body.append("location", form.location || "");
+      body.append("description", form.description || "");
+      body.append("pickup_by", form.pickupBy || "");
       body.append("price_cents", String(priceCents));
-
-      if (listingType === "offering") {
-        body.append("condition", form.condition);
-      }
-
+      body.append("purchased_from", form.purchasedFrom || "");
+      body.append("purchased_year", form.purchasedYear || "");
       if (imageFile) {
         body.append("image", imageFile);
       }
@@ -262,12 +275,14 @@ export default function Post() {
           value={form.category}
           onChange={handleChange}
         >
-          <option value="">Select a category</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
+          <option value="Appliance">Appliance</option>
+          <option value="Furniture">Furniture</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Textbooks">Textbooks</option>
+          <option value="Kitchen">Kitchen</option>
+          <option value="Books">Books</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Other">Other</option>
         </select>
         {fieldErrors.category && (
           <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>
@@ -275,94 +290,67 @@ export default function Post() {
           </p>
         )}
 
-        {isOffering && (
-          <>
-            <label htmlFor="condition">Condition *</label>
-            <select
-              id="condition"
-              name="condition"
-              value={form.condition}
-              onChange={handleChange}
-            >
-              <option value="">Select condition</option>
-              {CONDITIONS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.condition && (
-              <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>
-                {fieldErrors.condition}
-              </p>
-            )}
-          </>
-        )}
-
-        {isOffering && (
-          <>
-            <label htmlFor="price">Price ($) *</label>
-            <input
-              id="price"
-              name="price"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 25 (enter 0 for free)"
-              value={form.price}
-              onChange={handleChange}
-            />
-            {fieldErrors.price && (
-              <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>
-                {fieldErrors.price}
-              </p>
-            )}
-          </>
-        )}
-
-        {!isOffering && (
-          <>
-            <label htmlFor="budget">
-              Maximum budget ($){" "}
-              <span style={{ color: "#888" }}>(optional)</span>
-            </label>
-            <input
-              id="budget"
-              name="budget"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 50"
-              value={form.budget}
-              onChange={handleChange}
-            />
-            {fieldErrors.budget && (
-              <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>
-                {fieldErrors.budget}
-              </p>
-            )}
-          </>
-        )}
-
-        <label htmlFor="location">Location *</label>
+        <label htmlFor="condition">Condition</label>
         <select
-          id="location"
-          name="location"
-          value={form.location}
+          id="condition"
+          name="condition"
+          value={form.condition}
           onChange={handleChange}
         >
-          <option value="">Select a city</option>
-          {MINERVA_CITIES.map((city) => (
-            <option key={city} value={city}>
-              {city}
-            </option>
-          ))}
+          <option value="New">New</option>
+          <option value="Like New">Like New</option>
+          <option value="Good">Good</option>
+          <option value="Fair">Fair</option>
         </select>
-        {fieldErrors.location && (
-          <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>
-            {fieldErrors.location}
-          </p>
-        )}
+
+        <label htmlFor="price">Price (USD)</label>
+        <input
+          id="price"
+          name="price"
+          placeholder="20.00 or Free"
+          value={form.price}
+          onChange={handleChange}
+        />
+
+        <label htmlFor="location">Location</label>
+        <select id="location" name="location" value={form.location} onChange={handleChange} required>
+          <option value="">Select your city</option>
+          <option value="San Francisco">San Francisco</option>
+          <option value="Buenos Aires">Buenos Aires</option>
+          <option value="Hyderabad">Hyderabad</option>
+          <option value="Taipei">Taipei</option>
+          <option value="Seoul">Seoul</option>
+          <option value="Tokyo">Tokyo</option>
+          <option value="Berlin">Berlin</option>
+        </select>
+
+        <label htmlFor="pickupBy">Pickup by</label>
+        <input
+          id="pickupBy"
+          name="pickupBy"
+          type="date"
+          value={form.pickupBy}
+          onChange={handleChange}
+        />
+
+        <label htmlFor="purchasedFrom">Where did you buy it? (optional)</label>
+        <input
+          id="purchasedFrom"
+          name="purchasedFrom"
+          placeholder="e.g. Amazon, IKEA, local store"
+          value={form.purchasedFrom}
+          onChange={handleChange}
+        />
+
+        <label htmlFor="purchasedYear">Year purchased (optional)</label>
+        <input
+          id="purchasedYear"
+          name="purchasedYear"
+          placeholder="e.g. 2023"
+          maxLength={4}
+          value={form.purchasedYear}
+          onChange={handleChange}
+        />
 
         <label htmlFor="description">Description</label>
         <textarea
