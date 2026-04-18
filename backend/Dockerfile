@@ -1,17 +1,13 @@
-# initialize the image with Python 3.11
 FROM python:3.11-slim
 
-# set the working directory
 WORKDIR /app
 
-# copy requirements in the home directory
-COPY requirements.txt ./
+COPY backend/requirements.txt ./backend/
+RUN pip install -r backend/requirements.txt
 
-# run pip install
-RUN pip install -r requirements.txt
+COPY backend/ ./backend/
+COPY migrations/ ./migrations/
 
-# copy all the files in the directory
-COPY . .
+ENV PYTHONPATH=/app
 
-# run the application after the image is built
-CMD ["python", "-m", "backend.app"]
+CMD FLASK_APP=backend.app flask db upgrade && gunicorn backend.app:app --bind 0.0.0.0:${PORT:-5001}
