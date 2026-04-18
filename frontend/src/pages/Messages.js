@@ -215,7 +215,10 @@ export default function Messages() {
               marginBottom: "4px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>{c.other_user}</p>
+            <p style={{ margin: 0, fontWeight: c.has_unread ? 800 : 600, color: "var(--text)" }}>
+              {c.has_unread && <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "var(--accent)", marginRight: 6 }} />}
+              {c.other_user}
+            </p>
             <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>{c.item_title}</p>
             {(c.last_message || c.last_message_has_image) && (
               <p

@@ -15,6 +15,10 @@ def get_conversations(user_id):
         # Hide empty conversations from both sides
         if not last_msg:
             continue
+        has_unread = any(
+            m.sender_id != user_id and not m.read_at and not m.deleted_at
+            for m in c.messages
+        )
         result.append({
             "id": c.id,
             "item_id": c.item_id,
@@ -22,6 +26,7 @@ def get_conversations(user_id):
             "other_user": other.first_name,
             "last_message": (last_msg.body or "") if last_msg else None,
             "last_message_has_image": bool(last_msg.image_url) if last_msg else False,
+            "has_unread": has_unread,
         })
     return result
 
