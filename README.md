@@ -184,6 +184,38 @@ The frontend separates concerns similarly:
 | `JWT_SECRET_KEY` | `dev-secret-change-in-production` | Secret for signing JWTs |
 | `REACT_APP_API_ORIGIN` | `http://127.0.0.1:5001` | Backend origin (used to build API_BASE and image URLs) |
 
+## Deployment
+
+The app is deployed with the backend on **Render** and the frontend on **Vercel**.
+
+### Backend (Render)
+
+1. Create a new Web Service on [Render](https://render.com) connected to this repo
+2. Render auto-detects `render.yaml` which configures:
+   - Python runtime with `gunicorn` as the WSGI server
+   - PostgreSQL database via Neon
+   - `flask db upgrade` runs on each deploy via `backend/build.sh`
+   - Environment variables: `DATABASE_URL`, `JWT_SECRET_KEY` (auto-generated), `CORS_ORIGINS`, `PYTHONPATH`
+3. The backend URL will be something like `https://minerva-marketplace-api.onrender.com`
+
+### Frontend (Vercel)
+
+1. Create a new project on [Vercel](https://vercel.com) connected to this repo
+2. Set the root directory to `frontend`
+3. Add environment variable: `REACT_APP_API_ORIGIN` = your Render backend URL (e.g. `https://minerva-marketplace-api.onrender.com`)
+4. Vercel auto-detects `vercel.json` which configures build output and SPA rewrites
+5. The frontend URL will be something like `https://minerva-marketplace.vercel.app`
+
+### Post-deploy checklist
+
+- [ ] Backend health check returns 200: `curl https://YOUR-BACKEND/api/health`
+- [ ] Frontend loads in browser
+- [ ] Signup with Minerva email works
+- [ ] Create, browse, search, filter items work
+- [ ] Messaging works
+- [ ] Image upload works
+- [ ] Update `CORS_ORIGINS` on Render to match your Vercel frontend URL
+
 ## Docker Setup
 
 The project includes Dockerfiles for the backend and frontend, plus a simple `docker-compose.yml` that also starts Postgres.
