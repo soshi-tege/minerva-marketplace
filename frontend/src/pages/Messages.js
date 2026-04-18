@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getConversations, getMessages, sendMessage, markConversationRead } from "../services/api";
+import { getConversations, getMessages, sendMessage, editMessage, deleteMessage, markConversationRead } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/Button";
 import emptyMessages from "../assets/empty-messages.svg";
@@ -19,8 +19,8 @@ export default function Messages() {
   const [selectedConvo, setSelectedConvo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [searchParams] = useSearchParams();
+  const [editingMsgId, setEditingMsgId] = useState(null);
+  const [editInput, setEditInput] = useState("");
   const pollingRef = useRef(null);
   const prevLastMessageIdRef = useRef(null);
 
@@ -81,9 +81,24 @@ export default function Messages() {
     setImageFile(null);
   };
 
-  const lastOwnMessageId = [...messages]
-    .reverse()
-    .find((m) => m.sender_id === currentUserId)?.id;
+  const handleEditStart = (msg) => {
+    setEditingMsgId(msg.id);
+    setEditInput(msg.body);
+  };
+
+  const handleEditSave = async (msgId) => {
+    if (!editInput.trim()) return;
+    const updated = await editMessage(msgId, editInput);
+    setMessages((prev) => prev.map((m) => m.id === msgId ? updated : m));
+    setEditingMsgId(null);
+    setEditInput("");
+  };
+
+  const handleDelete = async (msgId) => {
+    if (!window.confirm("Delete this message?")) return;
+    await deleteMessage(msgId);
+    setMessages((prev) => prev.map((m) => m.id === msgId ? { ...m, body: "[deleted]", deleted: true } : m));
+  };
 
   return (
     <div className="container messages" style={{ display: "flex", gap: "1rem", padding: "1rem" }}>
@@ -127,29 +142,45 @@ export default function Messages() {
         ) : (
           <>
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`message-bubble ${m.sender_id === currentUserId ? "outgoing" : "incoming"}`}
-                >
-                  {m.body ? (
-                    <p style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.body}</p>
-                  ) : null}
-                  {m.image_url ? (
-                    <img
-                      src={itemImageSrc(m.image_url)}
-                      alt="Shared in chat"
-                      className="message-image"
-                    />
-                  ) : null}
-                  <div className="message-meta">
-                    <span>{formatMessageTime(m.created_at)}</span>
-                    {m.sender_id === currentUserId && m.id === lastOwnMessageId && (
-                      <span>{m.read_at ? "Seen" : "Sent"}</span>
+              {messages.map((m) => {
+                const isMine = m.sender_id === currentUserId;
+                const isEditing = editingMsgId === m.id;
+                return (
+                  <div key={m.id} style={{ alignSelf: isMine ? "flex-end" : "flex-start", maxWidth: "70%", display: "flex", flexDirection: "column", gap: 2 }}>
+                    {isEditing ? (
+                      <div style={{ display: "flex", gap: 4 }}>
+                        <input
+                          value={editInput}
+                          onChange={(e) => setEditInput(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleEditSave(m.id)}
+                          autoFocus
+                          style={{ flex: 1, fontSize: 14 }}
+                        />
+                        <button onClick={() => handleEditSave(m.id)} className="btn-primary" style={{ padding: "4px 8px", fontSize: 12 }}>Save</button>
+                        <button onClick={() => setEditingMsgId(null)} style={{ padding: "4px 8px", fontSize: 12 }}>Cancel</button>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          background: isMine ? "#c0392b" : "#f0f0f0",
+                          color: isMine ? "white" : "#222",
+                          padding: "8px 12px",
+                          borderRadius: "12px",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {m.body}
+                      </div>
+                    )}
+                    {isMine && !isEditing && !m.deleted && (
+                      <div style={{ display: "flex", gap: 6, alignSelf: "flex-end" }}>
+                        <button onClick={() => handleEditStart(m)} style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", color: "#999", padding: 0 }}>edit</button>
+                        <button onClick={() => handleDelete(m.id)} style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", color: "#999", padding: 0 }}>delete</button>
+                      </div>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <input
