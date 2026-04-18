@@ -1,10 +1,44 @@
-import API_BASE from "../config";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import API_BASE from "../config";
 import Body from "../components/Body";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
 import { useAuth } from "../context/AuthContext";
+
+const CATEGORIES = [
+  "Appliance",
+  "Furniture",
+  "Electronics",
+  "Textbooks",
+  "Kitchen",
+  "Books",
+  "Clothing",
+  "Other",
+];
+
+const CONDITIONS = ["New", "Like New", "Good", "Fair"];
+
+const MINERVA_CITIES = [
+  "San Francisco",
+  "Buenos Aires",
+  "Hyderabad",
+  "Taipei",
+  "Seoul",
+  "Tokyo",
+  "Berlin",
+];
+
+const EMPTY_FORM = {
+  title: "",
+  category: "",
+  condition: "",
+  price: "",
+  budget: "",
+  location: "",
+  description: "",
+};
 
 export default function Post() {
   const navigate = useNavigate();
@@ -24,17 +58,80 @@ export default function Post() {
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+
+  const resetFormState = () => {
+    setForm(EMPTY_FORM);
+    setFieldErrors({});
+    setImageFile(null);
+    setError("");
+    setLoading(false);
+  };
+
+  const handleListingTypeSelect = (type) => {
+    resetFormState();
+    setListingType(type);
+  };
+
+  const handleBack = () => {
+    resetFormState();
+    setListingType(null);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const validate = () => {
+    const errors = {};
+
+    if (!form.title.trim()) errors.title = "Title is required.";
+    if (!form.category) errors.category = "Category is required.";
+    if (!form.location) errors.location = "Location is required.";
+
+    if (listingType === "offering") {
+      if (!form.condition) errors.condition = "Please select a condition.";
+
+      const trimmedPrice = form.price.trim();
+      if (trimmedPrice === "") {
+        errors.price = "Price is required.";
+      } else {
+        const priceNum = Number(trimmedPrice);
+        if (!Number.isFinite(priceNum) || priceNum < 0) {
+          errors.price = "Price must be a valid number.";
+        }
+      }
+    }
+
+    if (listingType === "request") {
+      const trimmedBudget = form.budget.trim();
+      if (trimmedBudget !== "") {
+        const budgetNum = Number(trimmedBudget);
+        if (!Number.isFinite(budgetNum) || budgetNum < 0) {
+          errors.budget = "Budget must be a valid number.";
+        }
+      }
+    }
+
+    return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+
+    const errors = validate();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    if (!token) {
+      setError("Please log in before posting an item.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -53,7 +150,7 @@ export default function Post() {
       }
 
       const body = new FormData();
-      body.append("title", form.title);
+      body.append("title", form.title.trim());
       body.append("category", form.category);
       body.append("condition", form.condition);
       body.append("location", form.location || "");
@@ -68,23 +165,30 @@ export default function Post() {
 
       const res = await fetch(`${API_BASE}/items`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body,
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
 
       if (!res.ok) {
-        setError(data.error || "Could not create listing.");
-      } else {
-        setSuccess("Listing created!");
-        // If backend returns the new item id, you can redirect there
-        if (data.id) {
-          navigate(`/items/${data.id}`);
+        if (data.fields && typeof data.fields === "object") {
+          setFieldErrors(data.fields);
         } else {
-          navigate("/items");
+          setError(data.error || "Could not create listing.");
         }
+        return;
       }
+
+      resetFormState();
+      navigate(data.id ? `/items/${data.id}` : "/items");
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -92,28 +196,79 @@ export default function Post() {
     }
   };
 
+  if (!listingType) {
+    return (
+      <Body>
+        <Heading level={2}>What do you want to post?</Heading>
+        <div
+          className="card"
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        >
+          <button
+            className="btn btn-primary"
+            onClick={() => handleListingTypeSelect("offering")}
+            style={{ padding: "20px", fontSize: "1.1rem" }}
+          >
+            🛍️ I want to sell something
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => handleListingTypeSelect("request")}
+            style={{ padding: "20px", fontSize: "1.1rem" }}
+          >
+            🔍 I&apos;m looking for something
+          </button>
+        </div>
+      </Body>
+    );
+  }
+
+  const isOffering = listingType === "offering";
+
   return (
     <Body>
-      <Heading level={2}>List an item</Heading>
-      <form className="card" onSubmit={handleSubmit}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}
+      >
+        <button
+          onClick={handleBack}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "#888",
+            fontSize: "0.9rem",
+          }}
+        >
+          ← Back
+        </button>
+        <Heading level={2} style={{ margin: 0 }}>
+          {isOffering ? "Sell an item" : "Post a request"}
+        </Heading>
+      </div>
+
+      <form className="card" onSubmit={handleSubmit} noValidate>
         {error && (
           <p style={{ color: "#c0392b", marginBottom: 12 }}>{error}</p>
         )}
-        {success && (
-          <p style={{ color: "green", marginBottom: 12 }}>{success}</p>
-        )}
 
-        <label htmlFor="title">Item name</label>
+        <label htmlFor="title">
+          {isOffering ? "Item name" : "What are you looking for?"} *
+        </label>
         <input
           id="title"
           name="title"
-          placeholder="Microwave"
+          placeholder={isOffering ? "e.g. Rice cooker" : "e.g. Desk lamp"}
           value={form.title}
           onChange={handleChange}
-          required
         />
+        {fieldErrors.title && (
+          <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>
+            {fieldErrors.title}
+          </p>
+        )}
 
-        <label htmlFor="category">Category</label>
+        <label htmlFor="category">Category *</label>
         <select
           id="category"
           name="category"
@@ -129,6 +284,11 @@ export default function Post() {
           <option value="Clothing">Clothing</option>
           <option value="Other">Other</option>
         </select>
+        {fieldErrors.category && (
+          <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>
+            {fieldErrors.category}
+          </p>
+        )}
 
         <label htmlFor="condition">Condition</label>
         <select
@@ -197,7 +357,11 @@ export default function Post() {
           id="description"
           name="description"
           rows={3}
-          placeholder="Any details buyers should know"
+          placeholder={
+            isOffering
+              ? "Any details buyers should know"
+              : "Describe what you're looking for"
+          }
           value={form.description}
           onChange={handleChange}
         />
@@ -212,9 +376,11 @@ export default function Post() {
           style={{ marginBottom: 8 }}
         />
 
-        <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
-          <Button style="btn-primary">
-            {loading ? "Posting…" : "Post listing"}
+        <div
+          style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}
+        >
+          <Button style="btn-primary" disabled={loading}>
+            {loading ? "Posting…" : isOffering ? "Post listing" : "Post request"}
           </Button>
         </div>
       </form>
