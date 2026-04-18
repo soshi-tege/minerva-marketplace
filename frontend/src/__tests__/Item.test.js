@@ -5,9 +5,8 @@ import { AuthProvider } from '../context/AuthContext';
 import Item from '../pages/Item';
 
 const mockNavigate = jest.fn();
-// Item.js imports useNavigate from 'react-router', not 'react-router-dom'
-jest.mock('react-router', () => ({
-  ...jest.requireActual('react-router'),
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
 }));
 
@@ -121,11 +120,11 @@ describe('Item detail', () => {
     expect(screen.queryByRole('button', { name: /mark as sold/i })).not.toBeInTheDocument();
   });
 
-  test('clicking Edit listing opens edit form', async () => {
+  test('clicking Edit listing navigates to edit page', async () => {
     renderItem({ currentUserId: 7, token: 'tok' });
     await waitFor(() => screen.getByRole('button', { name: /edit listing/i }));
     fireEvent.click(screen.getByRole('button', { name: /edit listing/i }));
-    expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument();
+    expect(mockNavigate).toHaveBeenCalledWith('/items/42/edit');
   });
 
   test('delete calls confirm and navigates to /dashboard on success', async () => {

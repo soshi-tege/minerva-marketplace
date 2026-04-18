@@ -10,6 +10,7 @@ import Messages from "./pages/Messages";
 import Post from "./pages/Post";
 import Items from "./pages/Items";
 import Item from "./pages/Item";
+import EditItem from "./pages/EditItem";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { useUnreadMessages } from "./hooks/useUnreadMessages";
@@ -31,6 +32,7 @@ function AppContent() {
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           <Route path="/items" element={<ProtectedRoute><Items /></ProtectedRoute>} />
           <Route path="/items/:itemID" element={<ProtectedRoute><Item /></ProtectedRoute>} />
+          <Route path="/items/:itemID/edit" element={<ProtectedRoute><EditItem /></ProtectedRoute>} />
         </Routes>
       </main>
       <Toast notifications={notifications} onDismiss={dismiss} onOpen={navigateToConversation} />

@@ -300,6 +300,7 @@ input[type="submit"] {
     border-radius: 10px;
     border: 1px solid var(--border-light);
 }
+
 /* ===== Empty States ===== */
 .empty-state, .no-data, .no-items, .no-messages {
     text-align: center;
