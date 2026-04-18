@@ -1,4 +1,3 @@
-import pytest
 from .conftest import signup, get_token, create_item
 
 
@@ -142,6 +141,8 @@ def test_search_no_match(client):
 
 
 def test_search_empty_returns_all(client):
+    # q="" is treated as falsy by the backend and skips the search filter.
+    # If that logic changes to `if q is not None`, this test will catch it.
     token = get_token(client)
     create_item(client, token, title="A")
     create_item(client, token, title="B")
@@ -223,18 +224,8 @@ def test_sort_price_desc(client):
     assert data["items"][0]["title"] == "Expensive"
 
 
-# ── Price Range (requires PR #40) ────────────────────────────
+# ── Price Range ──────────────────────────────────────────────
 
-def _has_price_range_support():
-    import inspect
-    from backend.services.item_service import list_items
-    return "min_price" in inspect.signature(list_items).parameters
-
-needs_price_range = pytest.mark.skipif(not _has_price_range_support(),
-                                       reason="Needs PR #40 for price range support")
-
-
-@needs_price_range
 def test_price_range_min_only(client):
     token = get_token(client)
     create_item(client, token, title="Cheap", price_cents=500)
@@ -247,7 +238,7 @@ def test_price_range_min_only(client):
     assert "Expensive" in titles
 
 
-@needs_price_range
+
 def test_price_range_max_only(client):
     token = get_token(client)
     create_item(client, token, title="Cheap", price_cents=500)
@@ -258,7 +249,7 @@ def test_price_range_max_only(client):
     assert "Expensive" not in titles
 
 
-@needs_price_range
+
 def test_price_range_both(client):
     token = get_token(client)
     create_item(client, token, title="Too Cheap", price_cents=100)
@@ -269,7 +260,7 @@ def test_price_range_both(client):
     assert data["items"][0]["title"] == "Just Right"
 
 
-@needs_price_range
+
 def test_price_range_composes_with_other_filters(client):
     token = get_token(client)
     create_item(client, token, title="Cheap Phone", category="Electronics", price_cents=1000)
@@ -282,7 +273,7 @@ def test_price_range_composes_with_other_filters(client):
 
 # ── Sold Item Deprioritization ───────────────────────────────
 
-@needs_price_range
+
 def test_sold_items_appear_after_active(client):
     token = get_token(client)
     active = create_item(client, token, title="Active Item")
@@ -294,7 +285,7 @@ def test_sold_items_appear_after_active(client):
     assert titles.index("Active Item") < titles.index("Sold Item")
 
 
-@needs_price_range
+
 def test_sold_items_at_bottom_regardless_of_sort(client):
     token = get_token(client)
     create_item(client, token, title="Cheap Active", price_cents=100)

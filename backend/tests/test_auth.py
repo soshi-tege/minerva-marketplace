@@ -77,7 +77,7 @@ def test_login_nonexistent_user(client):
     resp = client.post("/api/auth/login", json={
         "email": "nobody@uni.minerva.edu", "password": "whatever",
     })
-    assert resp.status_code in (401, 404)
+    assert resp.status_code == 404
 
 
 def test_login_rejects_non_minerva_email(client):
@@ -85,3 +85,9 @@ def test_login_rejects_non_minerva_email(client):
         "email": "test@gmail.com", "password": "whatever",
     })
     assert resp.status_code == 400
+
+
+def test_signup_rejects_fake_minerva_domain(client):
+    resp = signup(client, email="test@fake-minerva.edu")
+    assert resp.status_code == 400
+    assert resp.get_json()["ok"] is False
