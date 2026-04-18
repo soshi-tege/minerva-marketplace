@@ -21,6 +21,7 @@ export default function Items() {
   const [tab, setTab] = useState("offering");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -37,7 +38,10 @@ export default function Items() {
   useEffect(() => {
     fetch(`${API_BASE}/cities`)
       .then(r => r.json())
-      .then(data => setCities(data))
+      .then(data => {
+        setCities(data);
+        if (city && !data.includes(city)) setCity("");
+      })
       .catch(() => {});
   }, []);
 
@@ -61,6 +65,7 @@ export default function Items() {
         setItems(data.items || []);
         setHasMore(data.has_more || false);
         setLoading(false);
+        setInitialLoad(false);
       })
       .catch(() => { setError("Could not load items."); setLoading(false); });
   }, [buildUrl]);
@@ -151,7 +156,7 @@ export default function Items() {
 
       {loading && <p className="empty-state">Loading items...</p>}
       {error && <p className="empty-state" style={{ color: "#c0392b" }}>{error}</p>}
-      {!loading && !error && items.length === 0 && (
+      {!loading && !initialLoad && !error && items.length === 0 && (
         <div className="empty-state">
           <img src={emptyState} alt="No items" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
           <div style={{ fontWeight: 500, marginBottom: 8 }}>No listings yet</div>

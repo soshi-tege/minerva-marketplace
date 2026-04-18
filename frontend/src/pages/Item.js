@@ -34,12 +34,13 @@ export default function Item() {
       navigate("/login");
       return;
     }
-    await fetch(`${API_BASE}/messages/conversations`, {
+    const res = await fetch(`${API_BASE}/messages/conversations`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ item_id: parseInt(itemID, 10) }),
     });
-    navigate("/messages");
+    const convo = await res.json();
+    navigate(`/messages?convo=${convo.id}`);
   };
 
   const handleMarkAsSold = async () => {

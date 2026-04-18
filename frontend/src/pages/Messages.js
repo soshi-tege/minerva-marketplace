@@ -23,13 +23,20 @@ export default function Messages() {
   const [imageFile, setImageFile] = useState(null);
   const [editingMsgId, setEditingMsgId] = useState(null);
   const [editInput, setEditInput] = useState("");
+  const [loadingConvos, setLoadingConvos] = useState(true);
   const pollingRef = useRef(null);
   const prevLastMessageIdRef = useRef(null);
 
   useEffect(() => {
-    getConversations().then((data) => {
-      setConversations(Array.isArray(data) ? data : []);
-    });
+    const fetchConvos = () => {
+      getConversations().then((data) => {
+        setConversations(Array.isArray(data) ? data : []);
+        setLoadingConvos(false);
+      });
+    };
+    fetchConvos();
+    const interval = setInterval(fetchConvos, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -111,11 +118,12 @@ export default function Messages() {
   return (
     <div className="container messages" style={{ display: "flex", gap: "1rem", padding: "1rem" }}>
       <div className="card conversations" style={{ width: "250px", padding: "1rem" }}>
-        {conversations.length === 0 && (
+        {loadingConvos && <p style={{ color: "var(--text-muted)", textAlign: "center", padding: "2rem 0" }}>Loading...</p>}
+        {!loadingConvos && conversations.length === 0 && (
           <div className="empty-state">
             <img src={emptyMessages} alt="No messages" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
             <div style={{ fontWeight: 500, marginBottom: 8 }}>No messages yet</div>
-            <div style={{ color: "#888", marginBottom: 16 }}>You have not chatted with anyone yet.</div>
+            <div style={{ color: "var(--text-muted)", marginBottom: 16 }}>You have not chatted with anyone yet.</div>
             <Link to="/items" style={{ textDecoration: "none" }}>
               <Button style="btn-primary">Start browsing items</Button>
             </Link>
@@ -129,18 +137,18 @@ export default function Messages() {
               cursor: "pointer",
               padding: "0.5rem",
               borderRadius: "6px",
-              background: selectedConvo?.id === c.id ? "#f3f3f3" : "transparent",
+              background: selectedConvo?.id === c.id ? "var(--accent-bg)" : "transparent",
               marginBottom: "4px",
             }}
           >
-            <p style={{ margin: 0, fontWeight: 600 }}>{c.other_user}</p>
-            <p style={{ margin: 0, fontSize: "0.8rem", color: "#666" }}>{c.item_title}</p>
+            <p style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>{c.other_user}</p>
+            <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-muted)" }}>{c.item_title}</p>
             {(c.last_message || c.last_message_has_image) && (
               <p
                 style={{
                   margin: 0,
                   fontSize: "0.75rem",
-                  color: "#999",
+                  color: "var(--text-faint)",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -155,7 +163,7 @@ export default function Messages() {
 
       <div className="card chat" style={{ flex: 1, padding: "1rem", display: "flex", flexDirection: "column", minHeight: "400px" }}>
         {!selectedConvo ? (
-          <p style={{ color: "#666", margin: "auto" }}>Select a conversation.</p>
+          <p style={{ color: "var(--text-muted)", margin: "auto" }}>Select a conversation.</p>
         ) : (
           <>
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>

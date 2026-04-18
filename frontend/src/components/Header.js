@@ -6,7 +6,7 @@ import { getUnreadCount } from "../services/api";
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
-  const [dark, setDark] = useState(() => localStorage.getItem("theme") === "dark");
+  const [dark, setDark] = useState(() => localStorage.getItem("theme") !== "light");
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
