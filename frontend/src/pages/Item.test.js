@@ -5,6 +5,7 @@ import { AuthProvider } from "../context/AuthContext";
 const mockNavigate = jest.fn();
 
 jest.mock("../context/AuthContext", () => ({
+  ...jest.requireActual("../context/AuthContext"),
   useAuth: jest.fn(),
 }));
 
