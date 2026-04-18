@@ -37,7 +37,10 @@ export default function Items() {
   useEffect(() => {
     fetch(`${API_BASE}/cities`)
       .then(r => r.json())
-      .then(data => setCities(data))
+      .then(data => {
+        setCities(data);
+        if (city && !data.includes(city)) setCity("");
+      })
       .catch(() => {});
   }, []);
 
