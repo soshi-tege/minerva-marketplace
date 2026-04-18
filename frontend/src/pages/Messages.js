@@ -40,14 +40,21 @@ export default function Messages() {
   }, []);
 
   useEffect(() => {
-    if (!conversations.length) return;
     const convoIdFromUrl = Number(searchParams.get("convo"));
     if (!convoIdFromUrl) return;
+    if (selectedConvo?.id === convoIdFromUrl) return;
+
     const convo = conversations.find((c) => c.id === convoIdFromUrl);
-    if (convo && selectedConvo?.id !== convo.id) {
+    if (convo) {
       selectConvo(convo);
+    } else if (!loadingConvos) {
+      // Conversation not in list (empty/new) — select it directly so buyer can type
+      setSelectedConvo({ id: convoIdFromUrl });
+      getMessages(convoIdFromUrl).then((data) => {
+        setMessages(Array.isArray(data) ? data : []);
+      });
     }
-  }, [conversations, searchParams, selectedConvo]);
+  }, [conversations, searchParams, selectedConvo, loadingConvos]);
 
   useEffect(() => {
     if (!selectedConvo) return;
