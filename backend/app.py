@@ -1,3 +1,9 @@
+"""Flask application factory for Minerva Marketplace.
+
+Creates and configures the Flask app with all extensions (SQLAlchemy,
+Flask-Migrate, JWT, CORS) and registers the route blueprints.
+"""
+
 import logging
 import os
 from datetime import timedelta
@@ -16,7 +22,16 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger(__name__)
 
 
-def create_app():
+def create_app(testing=False):
+    """Create and configure the Flask application.
+
+    Args:
+        testing: When True, uses an in-memory SQLite database and a
+                 fixed test secret. Skips the JWT_SECRET_KEY env var check.
+
+    Returns:
+        A configured Flask application instance.
+    """
     app = Flask(__name__)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     message_upload_dir = os.path.join(base_dir, "static", "uploads", "messages")
@@ -26,12 +41,17 @@ def create_app():
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    jwt_secret = os.environ.get("JWT_SECRET_KEY")
-    if not jwt_secret and not app.config.get("TESTING"):
-        logger.warning("JWT_SECRET_KEY not set — using insecure dev default. Do NOT use in production.")
-        jwt_secret = "dev-secret-change-in-production"
-    app.config["JWT_SECRET_KEY"] = jwt_secret or "test-secret"
+    if testing:
+        app.config["JWT_SECRET_KEY"] = "test-secret"
+    else:
+        jwt_secret = os.environ.get("JWT_SECRET_KEY")
+        if not jwt_secret:
+            logger.warning("JWT_SECRET_KEY not set — using insecure dev default. Do NOT use in production.")
+            jwt_secret = "dev-secret-change-in-production"
+        app.config["JWT_SECRET_KEY"] = jwt_secret
+
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
+    app.config["TESTING"] = testing
 
     allowed_origins = os.environ.get("CORS_ORIGINS", "*")
     cors_origins = allowed_origins.split(",") if allowed_origins != "*" else "*"
@@ -50,10 +70,12 @@ def create_app():
 
     @app.route("/api/health")
     def health():
+        """Return a simple health-check response."""
         return jsonify({"status": "ok"})
 
     @app.route("/uploads/messages/<path:filename>")
     def serve_message_upload(filename):
+        """Serve locally-stored message images (dev only; prod uses Cloudinary)."""
         return send_from_directory(app.config["MESSAGE_UPLOAD_FOLDER"], filename)
 
     logger.info("App created. Database: %s", app.config["SQLALCHEMY_DATABASE_URI"])

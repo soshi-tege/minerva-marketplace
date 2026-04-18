@@ -1,22 +1,23 @@
-import React, { useEffect, useState, useCallback } from "react";
+/** Browse page: lists items with filters, search, sort, tabs, and pagination. */
+import { useEffect, useState, useCallback } from "react";
 import ItemCard from "../components/ItemCard";
 import Button from "../components/Button";
 import API_BASE from "../config";
 import emptyState from "../assets/empty-state.svg";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const CATEGORIES = ["All", "Appliance", "Furniture", "Electronics", "Textbooks", "Kitchen", "Books", "Clothing", "Other"];
 const SORTS = [
   { label: "Newest", value: "newest" },
   { label: "Oldest", value: "oldest" },
-  { label: "Price (low → high)", value: "price_asc" },
-  { label: "Price (high → low)", value: "price_desc" }
+  { label: "Price (low to high)", value: "price_asc" },
+  { label: "Price (high to low)", value: "price_desc" }
 ];
 const PER_PAGE = 20;
 
 export default function Items() {
-  const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
-  const userCity = storedUser?.city || "";
+  const { user } = useAuth();
 
   const [tab, setTab] = useState("offering");
   const [items, setItems] = useState([]);
@@ -28,7 +29,7 @@ export default function Items() {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("newest");
-  const [city, setCity] = useState(userCity);
+  const [city, setCity] = useState("");
   const [cities, setCities] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -91,63 +92,59 @@ export default function Items() {
 
   return (
     <div className="container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
+      <div className="browse-header">
         <h2 style={{ margin: 0 }}>Browse</h2>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <form onSubmit={handleSearch} style={{ display: "flex", gap: "8px" }}>
+        <div className="browse-filters">
+          <form onSubmit={handleSearch} className="browse-search">
             <input
               placeholder="Search items..."
+              aria-label="Search items"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}
+              className="filter-input"
             />
-            <Button style="btn-primary" type="submit">Search</Button>
+            <Button variant="btn-primary" type="submit">Search</Button>
           </form>
-          <select value={category} onChange={e => setCategory(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={category} onChange={e => setCategory(e.target.value)} aria-label="Filter by category" className="filter-input">
             {CATEGORIES.map(c => <option key={c}>{c}</option>)}
           </select>
-          <select value={sort} onChange={e => setSort(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort order" className="filter-input">
             {SORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
-          <select value={city} onChange={e => setCity(e.target.value)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px" }}>
+          <select value={city} onChange={e => setCity(e.target.value)} aria-label="Filter by city" className="filter-input">
             <option value="">All cities</option>
             {cities.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <input
             type="number"
             placeholder="Min $"
+            aria-label="Minimum price"
             value={minPrice}
             onChange={e => setMinPrice(e.target.value)}
             min="0"
-            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px", width: "80px" }}
+            className="filter-input"
+            style={{ width: "80px" }}
           />
           <input
             type="number"
             placeholder="Max $"
+            aria-label="Maximum price"
             value={maxPrice}
             onChange={e => setMaxPrice(e.target.value)}
             min="0"
-            style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "14px", width: "80px" }}
+            className="filter-input"
+            style={{ width: "80px" }}
           />
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "4px", marginBottom: "20px", borderBottom: "2px solid #eee" }}>
+      <div className="browse-tabs">
         {[["offering", "Items for Sale"], ["request", "Requests"]].map(([val, label]) => (
           <button
             key={val}
+            type="button"
             onClick={() => setTab(val)}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              background: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: tab === val ? 700 : 400,
-              color: tab === val ? "#c0392b" : "#666",
-              borderBottom: tab === val ? "2px solid #c0392b" : "2px solid transparent",
-              marginBottom: "-2px",
-            }}
+            className={`browse-tab ${tab === val ? "browse-tab--active" : "browse-tab--inactive"}`}
           >
             {label}
           </button>
@@ -155,28 +152,29 @@ export default function Items() {
       </div>
 
       {loading && <p className="empty-state">Loading items...</p>}
-      {error && <p className="empty-state" style={{ color: "#c0392b" }}>{error}</p>}
+      {error && <p className="empty-state text-error">{error}</p>}
       {!loading && !initialLoad && !error && items.length === 0 && (
         <div className="empty-state">
-          <img src={emptyState} alt="No items" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
-          <div style={{ fontWeight: 500, marginBottom: 8 }}>No listings yet</div>
-          <div style={{ color: '#888', marginBottom: 16 }}>Looks like there's nothing here yet.</div>
-          <Link to="/post" style={{ textDecoration: 'none' }}>
-            <Button style="btn-primary">Post an item</Button>
+          <img src={emptyState} alt="No items" className="empty-state-img" />
+          <div className="empty-state-title">No listings yet</div>
+          <div style={{ color: "var(--text-faint)", marginBottom: 16 }}>Looks like there's nothing here yet.</div>
+          <Link to="/post" className="btn-primary" style={{ textDecoration: "none", padding: "12px 20px" }}>
+            Post an item
           </Link>
         </div>
       )}
 
       <div className="grid">
-        {items.map(item => <ItemCard key={item.id} item={item} currentUserId={storedUser?.id} />)}
+        {items.map(item => <ItemCard key={item.id} item={item} currentUserId={user?.id} />)}
       </div>
 
       {hasMore && (
-        <div style={{ textAlign: "center", marginTop: "24px" }}>
+        <div className="load-more-wrap">
           <button
+            type="button"
             onClick={loadMore}
             disabled={loadingMore}
-            style={{ padding: "10px 24px", borderRadius: "6px", background: "#c0392b", color: "#fff", border: "none", cursor: "pointer", fontSize: "14px" }}
+            className="btn-primary"
           >
             {loadingMore ? "Loading..." : "Load more"}
           </button>

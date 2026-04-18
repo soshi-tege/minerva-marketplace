@@ -165,11 +165,11 @@ export default function EditItem() {
           <label htmlFor="description">Description</label>
           <textarea id="description" name="description" rows={3} value={form.description} onChange={handleChange} />
 
-          {error && <p style={{ color: "#c0392b", marginTop: 12 }}>{error}</p>}
+          {error && <p className="text-error" style={{ marginTop: 12 }}>{error}</p>}
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
             <Button type="button" onClick={() => navigate(`/items/${itemID}`)}>Cancel</Button>
-            <Button style="btn-primary" type="submit" disabled={saving}>
+            <Button variant="btn-primary" type="submit" disabled={saving}>
               {saving ? "Saving..." : "Save changes"}
             </Button>
           </div>

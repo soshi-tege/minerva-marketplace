@@ -9,7 +9,7 @@ def test_health_ok(client):
 
 def test_signup_accepts_minerva_email(client):
     resp = signup(client, email="valid@uni.minerva.edu")
-    assert resp.status_code == 200
+    assert resp.status_code == 201
     data = resp.get_json()
     assert data["ok"] is True
     assert "token" in data
@@ -19,7 +19,7 @@ def test_signup_accepts_minerva_email(client):
 
 def test_signup_accepts_minerva_edu_email(client):
     resp = signup(client, email="valid@minerva.edu")
-    assert resp.status_code == 200
+    assert resp.status_code == 201
     assert resp.get_json()["ok"] is True
 
 
@@ -32,7 +32,7 @@ def test_signup_rejects_non_minerva_email(client):
 def test_signup_rejects_duplicate_email(client):
     signup(client, email="dup@uni.minerva.edu")
     resp = signup(client, email="dup@uni.minerva.edu")
-    assert resp.status_code == 400
+    assert resp.status_code == 409
     assert resp.get_json()["ok"] is False
 
 
@@ -77,7 +77,7 @@ def test_login_nonexistent_user(client):
     resp = client.post("/api/auth/login", json={
         "email": "nobody@uni.minerva.edu", "password": "whatever",
     })
-    assert resp.status_code == 404
+    assert resp.status_code == 401
 
 
 def test_login_rejects_non_minerva_email(client):

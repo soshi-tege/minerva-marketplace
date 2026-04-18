@@ -1,3 +1,5 @@
+"""Item routes: CRUD, search, filtering, sorting, pagination, and category/city lookups."""
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from flask_jwt_extended.exceptions import NoAuthorizationError
@@ -9,19 +11,30 @@ items_bp = Blueprint("items", __name__, url_prefix="/api")
 
 @items_bp.get("/items")
 def get_items():
-    min_price_raw = request.args.get("min_price")
-    max_price_raw = request.args.get("max_price")
-    min_price = int(min_price_raw) if min_price_raw else None
-    max_price = int(max_price_raw) if max_price_raw else None
+    """List items with optional filters, search, sort, and pagination.
+
+    Query params: q, category, city, listing_type, sort, min_price,
+    max_price, page, per_page.
+    """
+    try:
+        min_price = int(request.args["min_price"]) if "min_price" in request.args else None
+        max_price = int(request.args["max_price"]) if "max_price" in request.args else None
+        page = int(request.args.get("page", 1))
+        per_page = int(request.args.get("per_page", 20))
+    except (ValueError, TypeError):
+        return jsonify({"error": "min_price, max_price, page, and per_page must be integers."}), 400
+
+    if page < 1:
+        page = 1
 
     items_data = item_service.list_items(
         city=request.args.get("city"),
         listing_type=request.args.get("listing_type"),
         category=request.args.get("category"),
-        q=request.args.get("q", "").strip() or None,
+        search_query=request.args.get("q", "").strip() or None,
         sort=request.args.get("sort", "newest"),
-        page=int(request.args.get("page", 1)),
-        per_page=int(request.args.get("per_page", 20)),
+        page=page,
+        per_page=per_page,
         min_price=min_price,
         max_price=max_price,
     )
@@ -37,6 +50,7 @@ def get_item(item_id):
 
 @items_bp.post("/items")
 def create_item():
+    """Create a new item listing. Accepts JSON or multipart form data with image."""
     try:
         verify_jwt_in_request()
         seller_id = int(get_jwt_identity())
@@ -70,6 +84,7 @@ def create_item():
 
 @items_bp.put("/items/<int:item_id>")
 def update_item(item_id):
+    """Update an existing item listing. Only the owner can update."""
     try:
         verify_jwt_in_request()
         user_id = int(get_jwt_identity())
@@ -91,6 +106,7 @@ def update_item(item_id):
 
 @items_bp.delete("/items/<int:item_id>")
 def delete_item(item_id):
+    """Delete an item listing and its associated conversations. Owner only."""
     try:
         verify_jwt_in_request()
         user_id = int(get_jwt_identity())
@@ -102,11 +118,12 @@ def delete_item(item_id):
         return jsonify({"error": "Forbidden"}), 403
 
     item_service.delete_item(item)
-    return jsonify({"message": "Item deleted"}), 200
+    return "", 204
 
 
 @items_bp.get("/categories")
 def get_categories():
+    """Return the list of valid item categories."""
     return jsonify(item_service.get_categories())
 
 

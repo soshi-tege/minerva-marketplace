@@ -55,8 +55,13 @@ def test_get_conversations(client):
     item = create_item(client, seller_token)
     buyer_token = get_token(client, email="buyer4@uni.minerva.edu")
 
-    client.post("/api/messages/conversations",
-                json={"item_id": item["id"]},
+    convo = client.post("/api/messages/conversations",
+                        json={"item_id": item["id"]},
+                        headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+
+    # Must send a message for the conversation to appear in the list
+    client.post(f"/api/messages/conversations/{convo['id']}",
+                json={"body": "Hi there"},
                 headers={"Authorization": f"Bearer {buyer_token}"})
 
     convos = client.get("/api/messages/conversations",
@@ -145,7 +150,7 @@ def test_delete_message_soft_deletes(client):
 
     resp = client.delete(f"/api/messages/{msg['id']}",
                          headers={"Authorization": f"Bearer {buyer_token}"})
-    assert resp.status_code == 200
+    assert resp.status_code == 204
 
     msgs = client.get(f"/api/messages/conversations/{convo['id']}",
                       headers={"Authorization": f"Bearer {buyer_token}"}).get_json()

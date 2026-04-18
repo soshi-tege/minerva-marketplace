@@ -1,5 +1,6 @@
-export default function Button({ children, style, onClick, ...props }) {
+/** Reusable button component that maps a variant name to a CSS class. */
+export default function Button({ children, variant, onClick, type = "button", ...props }) {
     return (
-        <button className={style} onClick={onClick} {...props}>{children}</button>
+        <button type={type} className={variant} onClick={onClick} {...props}>{children}</button>
     )
 }

@@ -1,36 +1,16 @@
-import React from "react";
-
+/** Notification toasts that appear in the bottom-right corner for new messages. */
 export default function Toast({ notifications, onDismiss, onOpen }) {
   if (notifications.length === 0) return null;
 
   return (
-    <div style={{
-      position: "fixed",
-      bottom: "24px",
-      right: "24px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "8px",
-      zIndex: 1000,
-    }}>
+    <div className="toast-container" role="alert" aria-live="polite">
       {notifications.map((n) => (
         <div
           key={n.id}
+          className="toast"
           onClick={() => onOpen(n)}
-          style={{
-            background: "#222",
-            color: "white",
-            padding: "12px 16px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            maxWidth: "300px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            fontSize: "14px",
-          }}
         >
-          <strong style={{ display: "block", marginBottom: "2px" }}>
-            New message
-          </strong>
+          <strong>New message</strong>
           <div style={{ marginBottom: 10 }}>{n.message}</div>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
             <button
@@ -39,7 +19,8 @@ export default function Toast({ notifications, onDismiss, onOpen }) {
                 e.stopPropagation();
                 onOpen(n);
               }}
-              style={{ padding: "4px 8px", fontSize: 12, background: "#c0392b" }}
+              className="btn-primary"
+              style={{ padding: "4px 8px", fontSize: 12 }}
             >
               Open
             </button>
@@ -49,7 +30,7 @@ export default function Toast({ notifications, onDismiss, onOpen }) {
                 e.stopPropagation();
                 onDismiss(n.id);
               }}
-              style={{ padding: "4px 8px", fontSize: 12, background: "#444" }}
+              style={{ padding: "4px 8px", fontSize: 12, background: "var(--secondary-btn)", color: "var(--secondary-btn-text)" }}
             >
               Dismiss
             </button>

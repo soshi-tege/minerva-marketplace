@@ -805,7 +805,7 @@ input[type="submit"] {
 
 /* ===== Utility ===== */
 .text-error {
-    color: var(--accent);
+    color: var(--danger);
 }
 
 .text-muted {

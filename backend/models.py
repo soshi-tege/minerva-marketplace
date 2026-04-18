@@ -1,8 +1,16 @@
+"""SQLAlchemy ORM models for Minerva Marketplace.
+
+Defines the four core entities: User, Item, Conversation, and Message.
+Each model provides a ``to_dict()`` method for JSON serialization.
+"""
+
 from datetime import datetime, timezone
 from . import db
 
 
 class User(db.Model):
+    """A registered Minerva student who can list and purchase items."""
+
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
@@ -16,6 +24,7 @@ class User(db.Model):
     items = db.relationship("Item", back_populates="seller", lazy=True)
 
     def to_dict(self):
+        """Serialize user to a dict (excludes password_hash)."""
         return {
             "id": self.id,
             "email": self.email,
@@ -28,18 +37,25 @@ class User(db.Model):
 
 
 class Item(db.Model):
+    """A marketplace listing (offering or request) posted by a user."""
+
     __tablename__ = "items"
+    __table_args__ = (
+        db.CheckConstraint("price >= 0", name="ck_items_price_nonneg"),
+        db.CheckConstraint("status IN ('active', 'sold')", name="ck_items_status"),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
-    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Integer, nullable=False)  # stored in cents (e.g. 5000 = $50.00)
     currency = db.Column(db.String(10), nullable=False, default="USD")
-    category = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(100), nullable=False, index=True)
     condition = db.Column(db.String(50), nullable=False)
     listing_type = db.Column(db.String(20), nullable=False, default="offering")
     status = db.Column(db.String(50), nullable=False, default="active")
-    location = db.Column(db.String(255), nullable=True)
+    location = db.Column(db.String(255), nullable=True, index=True)
     image_url = db.Column(db.String(500), nullable=True)
     purchased_from = db.Column(db.String(255), nullable=True)
     purchased_year = db.Column(db.String(10), nullable=True)
@@ -48,6 +64,7 @@ class Item(db.Model):
     seller = db.relationship("User", back_populates="items")
 
     def to_dict(self):
+        """Serialize item to a dict, including nested seller profile if loaded."""
         result = {
             "id": self.id,
             "seller_id": self.seller_id,
@@ -79,11 +96,17 @@ class Item(db.Model):
 
 
 class Conversation(db.Model):
+    """A conversation thread between a buyer and seller about an item."""
+
     __tablename__ = "conversations"
+    __table_args__ = (
+        db.UniqueConstraint("buyer_id", "item_id", name="uq_conversation_buyer_item"),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey("items.id"), nullable=False)
-    buyer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey("items.id"), nullable=False, index=True)
+    buyer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    seller_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     item = db.relationship("Item", backref=db.backref("conversations", cascade="all, delete-orphan"))
     buyer = db.relationship("User", foreign_keys=[buyer_id], backref="buying_conversations")
@@ -91,6 +114,7 @@ class Conversation(db.Model):
     messages = db.relationship("Message", back_populates="conversation", order_by="Message.created_at", cascade="all, delete-orphan")
 
     def to_dict(self):
+        """Serialize conversation metadata (does not include messages)."""
         return {
             "id": self.id,
             "item_id": self.item_id,
@@ -102,10 +126,12 @@ class Conversation(db.Model):
 
 
 class Message(db.Model):
+    """A single message within a conversation. Supports soft delete via deleted_at."""
+
     __tablename__ = "messages"
     id = db.Column(db.Integer, primary_key=True)
-    conversation_id = db.Column(db.Integer, db.ForeignKey("conversations.id"), nullable=False)
-    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    conversation_id = db.Column(db.Integer, db.ForeignKey("conversations.id"), nullable=False, index=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     body = db.Column(db.Text, nullable=False)
     image_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
@@ -115,6 +141,7 @@ class Message(db.Model):
     sender = db.relationship("User", backref="messages")
 
     def to_dict(self):
+        """Serialize message. Body is replaced with '[deleted]' if soft-deleted."""
         return {
             "id": self.id,
             "conversation_id": self.conversation_id,
@@ -122,6 +149,7 @@ class Message(db.Model):
             "sender_name": self.sender.first_name,
             "body": "[deleted]" if self.deleted_at else self.body,
             "deleted": bool(self.deleted_at),
+            "image_url": None if self.deleted_at else self.image_url,
             "created_at": self.created_at.isoformat(),
             "read_at": self.read_at.isoformat() if self.read_at else None,
         }

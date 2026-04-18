@@ -32,7 +32,7 @@ export default function Dashboard() {
     }, [token]);
 
     if (loading) return <Body><p>Loading...</p></Body>;
-    if (error) return <Body><p style={{ color: "#c0392b" }}>{error}</p></Body>;
+    if (error) return <Body><p className="text-error">{error}</p></Body>;
 
     return (
         <Body>
@@ -40,15 +40,15 @@ export default function Dashboard() {
 
             {/* Quick Stats */}
             <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: 24 }}>
-                <StatBox label="Active Listings" value={stats.active_count} color="#2980b9" />
-                <StatBox label="Sold Items" value={stats.sold_count} color="#27ae60" />
-                <StatBox label="Unread Messages" value={stats.unread_messages} color="#c0392b" />
+                <StatBox label="Active Listings" value={stats.active_count} color="var(--info)" />
+                <StatBox label="Sold Items" value={stats.sold_count} color="var(--success)" />
+                <StatBox label="Unread Messages" value={stats.unread_messages} color="var(--accent)" />
             </div>
 
             {/* Active Listings */}
             <SectionCard title="Active Listings">
                 {activeListings.length === 0 ? (
-                    <p style={{ color: "#666" }}>No active listings. <Link to="/post" style={{ color: "#c0392b" }}>Post something!</Link></p>
+                    <p style={{ color: "var(--text-muted)" }}>No active listings. <Link to="/post" style={{ color: "var(--accent)" }}>Post something!</Link></p>
                 ) : (
                     <div className="grid">
                         {activeListings.map(item => <ItemCard key={item.id} item={item} />)}
@@ -59,7 +59,7 @@ export default function Dashboard() {
             {/* Sold Items */}
             <SectionCard title="Sold Items">
                 {soldListings.length === 0 ? (
-                    <p style={{ color: "#666" }}>No sold items yet.</p>
+                    <p style={{ color: "var(--text-muted)" }}>No sold items yet.</p>
                 ) : (
                     <div className="grid">
                         {soldListings.map(item => <ItemCard key={item.id} item={item} />)}
@@ -70,16 +70,16 @@ export default function Dashboard() {
             {/* Recent Messages */}
             <SectionCard title="Recent Messages">
                 {recentMessages.length === 0 ? (
-                    <p style={{ color: "#666" }}>No messages yet.</p>
+                    <p style={{ color: "var(--text-muted)" }}>No messages yet.</p>
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                         {recentMessages.map(m => (
-                            <Link key={m.id} to="/messages" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f0f0f0", color: "inherit" }}>
+                            <Link key={m.id} to="/messages" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border-light)", color: "inherit" }}>
                                 <div>
                                     <strong>{m.other_user}</strong>
-                                    <p style={{ margin: 0, fontSize: "13px", color: "#666" }}>{m.last_message || "No messages yet"}</p>
+                                    <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted)" }}>{m.last_message || "No messages yet"}</p>
                                 </div>
-                                <span style={{ fontSize: "12px", color: "#999" }}>{m.item_title}</span>
+                                <span style={{ fontSize: "12px", color: "var(--text-faint)" }}>{m.item_title}</span>
                             </Link>
                         ))}
                     </div>
