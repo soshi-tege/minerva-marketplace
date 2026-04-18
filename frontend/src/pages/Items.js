@@ -16,7 +16,6 @@ const PER_PAGE = 20;
 
 export default function Items() {
   const storedUser = JSON.parse(localStorage.getItem("mm_auth_user") || "{}");
-  const userCity = storedUser?.city || "";
 
   const [tab, setTab] = useState("offering");
   const [items, setItems] = useState([]);
@@ -28,7 +27,7 @@ export default function Items() {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("newest");
-  const [city, setCity] = useState(userCity);
+  const [city, setCity] = useState("");
   const [cities, setCities] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
