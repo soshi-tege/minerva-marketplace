@@ -67,10 +67,11 @@ export default function Messages() {
     } else if (!loadingConvos) {
       // Empty conversation from Contact Seller — inject into sidebar temporarily
       const navState = location.state || {};
+      const meta = JSON.parse(localStorage.getItem(`convo_meta_${convoIdFromUrl}`) || "{}");
       const tempConvo = {
         id: convoIdFromUrl,
-        other_user: navState.other_user || "Seller",
-        item_title: navState.item_title || "",
+        other_user: navState.other_user || meta.other_user || "",
+        item_title: navState.item_title || meta.item_title || "",
         last_message: null,
         _temp: true,
       };
