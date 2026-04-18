@@ -130,6 +130,64 @@ def test_search_no_match(client):
     assert len(data["items"]) == 0
 
 
+def test_search_synonym_earbuds_finds_headphones(client):
+    token = _register_and_get_token(client)
+    _create_item(client, token, title="Wireless Headphones", description="Noise cancelling")
+    _create_item(client, token, title="Desk Chair", description="Ergonomic")
+
+    resp = client.get("/api/items?q=earbuds")
+    data = resp.get_json()
+    assert len(data["items"]) == 1
+    assert data["items"][0]["title"] == "Wireless Headphones"
+
+
+def test_search_synonym_sofa_finds_couch(client):
+    token = _register_and_get_token(client)
+    _create_item(client, token, title="Gray Couch", description="3-seater")
+    _create_item(client, token, title="Coffee Table", description="Wooden")
+
+    resp = client.get("/api/items?q=sofa")
+    data = resp.get_json()
+    assert len(data["items"]) == 1
+    assert data["items"][0]["title"] == "Gray Couch"
+
+
+def test_search_synonym_laptop_finds_notebook(client):
+    token = _register_and_get_token(client)
+    _create_item(client, token, title="MacBook Notebook", description="Good condition")
+    _create_item(client, token, title="Rice Cooker", description="Barely used")
+
+    resp = client.get("/api/items?q=laptop")
+    data = resp.get_json()
+    assert len(data["items"]) == 1
+    assert data["items"][0]["title"] == "MacBook Notebook"
+
+
+def test_search_synonym_matches_description(client):
+    token = _register_and_get_token(client)
+    _create_item(client, token, title="Audio Gear", description="Sony headphones barely used")
+    _create_item(client, token, title="Chair", description="Comfortable")
+
+    resp = client.get("/api/items?q=earbuds")
+    data = resp.get_json()
+    assert len(data["items"]) == 1
+    assert data["items"][0]["title"] == "Audio Gear"
+
+
+def test_search_synonym_returns_both_original_and_synonym(client):
+    token = _register_and_get_token(client)
+    _create_item(client, token, title="Sony Earbuds", description="Great sound")
+    _create_item(client, token, title="Bose Headphones", description="Noise cancelling")
+    _create_item(client, token, title="Desk Lamp", description="LED")
+
+    resp = client.get("/api/items?q=earbuds")
+    data = resp.get_json()
+    titles = {i["title"] for i in data["items"]}
+    assert "Sony Earbuds" in titles
+    assert "Bose Headphones" in titles
+    assert len(data["items"]) == 2
+
+
 def test_search_empty_query_returns_all(client):
     token = _register_and_get_token(client)
     _create_item(client, token, title="Item A")
