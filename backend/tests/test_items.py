@@ -344,6 +344,43 @@ def test_get_cities_empty(client):
     assert data == []
 
 
+# ── Purchased From/Year ───────────────────────────────────────
+
+def test_create_item_with_purchase_details(client):
+    token = get_token(client)
+    resp = client.post("/api/items", json={
+        "title": "IKEA Desk", "category": "Furniture", "price_cents": 8000,
+        "condition": "Good", "location": "San Francisco", "listing_type": "offering",
+        "purchased_from": "IKEA", "purchased_year": "2024",
+    }, headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 201
+    data = resp.get_json()
+    assert data["purchased_from"] == "IKEA"
+    assert data["purchased_year"] == "2024"
+
+
+def test_update_purchase_details(client):
+    token = get_token(client, email="purchaseupdate@uni.minerva.edu")
+    item = create_item(client, token)
+    resp = client.put(f"/api/items/{item['id']}", json={
+        "purchased_from": "Amazon", "purchased_year": "2023",
+    }, headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 200
+    assert resp.get_json()["purchased_from"] == "Amazon"
+    assert resp.get_json()["purchased_year"] == "2023"
+
+
+def test_purchased_year_rejects_invalid(client):
+    token = get_token(client, email="badyear@uni.minerva.edu")
+    resp = client.post("/api/items", json={
+        "title": "Lamp", "category": "Electronics", "price_cents": 1000,
+        "condition": "Good", "location": "Tokyo", "listing_type": "offering",
+        "purchased_year": "abcd",
+    }, headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 400
+    assert "purchased_year" in resp.get_json().get("fields", {})
+
+
 # ── Seller Profile ───────────────────────────────────────────
 
 def test_item_includes_seller_info(client):

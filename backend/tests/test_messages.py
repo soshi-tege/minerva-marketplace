@@ -92,3 +92,80 @@ def test_conversations_require_auth(client):
 def test_send_message_requires_auth(client):
     resp = client.post("/api/messages/conversations/1", json={"body": "test"})
     assert resp.status_code == 401
+
+
+def test_edit_own_message(client):
+    seller_token = get_token(client, email="editseller@uni.minerva.edu")
+    item = create_item(client, seller_token)
+    buyer_token = get_token(client, email="editbuyer@uni.minerva.edu")
+
+    convo = client.post("/api/messages/conversations",
+                        json={"item_id": item["id"]},
+                        headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+    msg = client.post(f"/api/messages/conversations/{convo['id']}",
+                      json={"body": "original"},
+                      headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+
+    resp = client.put(f"/api/messages/{msg['id']}",
+                      json={"body": "edited"},
+                      headers={"Authorization": f"Bearer {buyer_token}"})
+    assert resp.status_code == 200
+    assert resp.get_json()["body"] == "edited"
+
+
+def test_edit_other_users_message_forbidden(client):
+    seller_token = get_token(client, email="editforbidseller@uni.minerva.edu")
+    item = create_item(client, seller_token)
+    buyer_token = get_token(client, email="editforbidbuyer@uni.minerva.edu")
+
+    convo = client.post("/api/messages/conversations",
+                        json={"item_id": item["id"]},
+                        headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+    msg = client.post(f"/api/messages/conversations/{convo['id']}",
+                      json={"body": "mine"},
+                      headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+
+    resp = client.put(f"/api/messages/{msg['id']}",
+                      json={"body": "hijacked"},
+                      headers={"Authorization": f"Bearer {seller_token}"})
+    assert resp.status_code == 403
+
+
+def test_delete_message_soft_deletes(client):
+    seller_token = get_token(client, email="delseller@uni.minerva.edu")
+    item = create_item(client, seller_token)
+    buyer_token = get_token(client, email="delbuyer@uni.minerva.edu")
+
+    convo = client.post("/api/messages/conversations",
+                        json={"item_id": item["id"]},
+                        headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+    msg = client.post(f"/api/messages/conversations/{convo['id']}",
+                      json={"body": "delete me"},
+                      headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+
+    resp = client.delete(f"/api/messages/{msg['id']}",
+                         headers={"Authorization": f"Bearer {buyer_token}"})
+    assert resp.status_code == 200
+
+    msgs = client.get(f"/api/messages/conversations/{convo['id']}",
+                      headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+    deleted_msg = next(m for m in msgs if m["id"] == msg["id"])
+    assert deleted_msg["body"] == "[deleted]"
+    assert deleted_msg["deleted"] is True
+
+
+def test_delete_other_users_message_forbidden(client):
+    seller_token = get_token(client, email="delforbidseller@uni.minerva.edu")
+    item = create_item(client, seller_token)
+    buyer_token = get_token(client, email="delforbidbuyer@uni.minerva.edu")
+
+    convo = client.post("/api/messages/conversations",
+                        json={"item_id": item["id"]},
+                        headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+    msg = client.post(f"/api/messages/conversations/{convo['id']}",
+                      json={"body": "not yours"},
+                      headers={"Authorization": f"Bearer {buyer_token}"}).get_json()
+
+    resp = client.delete(f"/api/messages/{msg['id']}",
+                         headers={"Authorization": f"Bearer {seller_token}"})
+    assert resp.status_code == 403
