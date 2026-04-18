@@ -2,9 +2,13 @@
 // allows you to do things like:
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
+import { TextEncoder, TextDecoder } from "util";
 
-// react-router v7 requires TextEncoder/TextDecoder (not in jsdom by default)
-const { TextEncoder, TextDecoder } = require('util');
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
+if (!global.TextEncoder) {
+  global.TextEncoder = TextEncoder;
+}
+
+if (!global.TextDecoder) {
+  global.TextDecoder = TextDecoder;
+}
