@@ -79,6 +79,11 @@ export default function Post() {
       }
     }
 
+    const trimmedYear = form.purchasedYear.trim();
+    if (trimmedYear && (!/^\d{4}$/.test(trimmedYear))) {
+      errors.purchased_year = "Must be a 4-digit year (e.g. 2023).";
+    }
+
     return errors;
   };
 
@@ -235,6 +240,7 @@ export default function Post() {
 
             <label htmlFor="purchasedYear">Year purchased <span style={{ color: "#888" }}>(optional)</span></label>
             <input id="purchasedYear" name="purchasedYear" placeholder="e.g. 2023" maxLength={4} value={form.purchasedYear} onChange={handleChange} />
+            {fieldErrors.purchased_year && <p style={{ color: "#c0392b", fontSize: "0.85rem", marginTop: 2 }}>{fieldErrors.purchased_year}</p>}
           </>
         )}
 
