@@ -192,9 +192,7 @@ def delete_item(item):
 
 def save_upload(file):
     """Validate and save an uploaded image file.
-    Returns the image URL path or raises ValueError.
-    Uses UPLOAD_DIR env var if set; defaults to static/uploads/ for local dev.
-    Production deployments should use a persistent volume or object storage."""
+    Uses Cloudinary if CLOUDINARY_URL is set, otherwise saves locally."""
     if not file or not file.filename:
         return None
 
@@ -207,6 +205,14 @@ def save_upload(file):
     file.seek(0)
     if size > MAX_FILE_SIZE:
         raise ValueError("File too large. Maximum size is 5 MB.")
+
+    cloudinary_url = os.environ.get("CLOUDINARY_URL")
+    if cloudinary_url:
+        import cloudinary
+        import cloudinary.uploader
+        cloudinary.config(cloudinary_url=cloudinary_url)
+        result = cloudinary.uploader.upload(file, folder="minerva-marketplace")
+        return result["secure_url"]
 
     upload_dir = os.environ.get("UPLOAD_DIR") or os.path.join(current_app.root_path, "static", "uploads")
     os.makedirs(upload_dir, exist_ok=True)

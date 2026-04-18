@@ -10,7 +10,8 @@ const CONDITION_COLORS = {
 
 function timeAgo(dateString) {
   const now = new Date();
-  const date = new Date(dateString);
+  const iso = dateString.endsWith("Z") ? dateString : dateString + "Z";
+  const date = new Date(iso);
   const seconds = Math.floor((now - date) / 1000);
   if (seconds < 60) return "just now";
   const minutes = Math.floor(seconds / 60);

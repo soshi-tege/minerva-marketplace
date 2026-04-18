@@ -24,8 +24,8 @@ def _magic_matches_image(header: bytes) -> bool:
 
 def save_message_image(file_storage: FileStorage, upload_dir: str) -> str:
     """
-    Validate extension, size, and image magic bytes; save under upload_dir.
-    Returns public URL path e.g. /uploads/messages/<uuid>.png
+    Validate extension, size, and image magic bytes; save to Cloudinary or local.
+    Returns public URL.
     """
     if not file_storage or not file_storage.filename:
         raise ValueError("No image file provided.")
@@ -43,6 +43,14 @@ def save_message_image(file_storage: FileStorage, upload_dir: str) -> str:
     file_storage.seek(0)
     if not _magic_matches_image(header):
         raise ValueError("File is not a valid image.")
+
+    cloudinary_url = os.environ.get("CLOUDINARY_URL")
+    if cloudinary_url:
+        import cloudinary
+        import cloudinary.uploader
+        cloudinary.config(cloudinary_url=cloudinary_url)
+        result = cloudinary.uploader.upload(file_storage, folder="minerva-marketplace/messages")
+        return result["secure_url"]
 
     os.makedirs(upload_dir, exist_ok=True)
     name = f"{uuid.uuid4().hex}.{ext}"
