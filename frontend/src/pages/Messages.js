@@ -3,7 +3,7 @@ import { getConversations, getMessages, sendMessage, editMessage, deleteMessage,
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/Button";
 import emptyMessages from "../assets/empty-messages.svg";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useLocation } from "react-router-dom";
 import { itemImageSrc } from "../config";
 
 function formatMessageTime(isoString) {
@@ -16,6 +16,7 @@ export default function Messages() {
   const { user } = useAuth();
   const currentUserId = user?.id;
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const [conversations, setConversations] = useState([]);
   const [selectedConvo, setSelectedConvo] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -46,15 +47,29 @@ export default function Messages() {
 
     const convo = conversations.find((c) => c.id === convoIdFromUrl);
     if (convo) {
-      selectConvo(convo);
+      selectConvoWithDraft(convo);
     } else if (!loadingConvos) {
-      // Conversation not in list (empty/new) — select it directly so buyer can type
-      setSelectedConvo({ id: convoIdFromUrl });
+      // Empty conversation from Contact Seller — inject into sidebar temporarily
+      const navState = location.state || {};
+      const tempConvo = {
+        id: convoIdFromUrl,
+        other_user: navState.other_user || "Seller",
+        item_title: navState.item_title || "",
+        last_message: null,
+        _temp: true,
+      };
+      setConversations((prev) => {
+        if (prev.some((c) => c.id === convoIdFromUrl)) return prev;
+        return [tempConvo, ...prev];
+      });
+      setSelectedConvo(tempConvo);
       getMessages(convoIdFromUrl).then((data) => {
         setMessages(Array.isArray(data) ? data : []);
       });
+      const draft = localStorage.getItem(`draft_convo_${convoIdFromUrl}`) || "";
+      setInput(draft);
     }
-  }, [conversations, searchParams, selectedConvo, loadingConvos]);
+  }, [conversations, searchParams, selectedConvo, loadingConvos, location.state]);
 
   useEffect(() => {
     if (!selectedConvo) return;
@@ -89,12 +104,33 @@ export default function Messages() {
     });
   };
 
+  // Save draft to localStorage when input changes
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInput(val);
+    if (selectedConvo) {
+      if (val.trim()) {
+        localStorage.setItem(`draft_convo_${selectedConvo.id}`, val);
+      } else {
+        localStorage.removeItem(`draft_convo_${selectedConvo.id}`);
+      }
+    }
+  };
+
+  // Restore draft when selecting a conversation
+  const selectConvoWithDraft = (convo) => {
+    selectConvo(convo);
+    const draft = localStorage.getItem(`draft_convo_${convo.id}`) || "";
+    setInput(draft);
+  };
+
   const handleSend = async () => {
     if ((!input.trim() && !imageFile) || !selectedConvo) return;
     const msg = await sendMessage(selectedConvo.id, { body: input, imageFile });
     setMessages((prev) => [...prev, msg]);
     setInput("");
     setImageFile(null);
+    localStorage.removeItem(`draft_convo_${selectedConvo.id}`);
   };
 
   const handleEditStart = (msg) => {
@@ -139,7 +175,7 @@ export default function Messages() {
         {conversations.map((c) => (
           <div
             key={c.id}
-            onClick={() => selectConvo(c)}
+            onClick={() => selectConvoWithDraft(c)}
             style={{
               cursor: "pointer",
               padding: "0.5rem",
@@ -173,6 +209,12 @@ export default function Messages() {
           <p style={{ color: "var(--text-muted)", margin: "auto" }}>Select a conversation.</p>
         ) : (
           <>
+            {selectedConvo.other_user && (
+              <div style={{ borderBottom: "1px solid var(--border-light)", paddingBottom: "8px", marginBottom: "12px" }}>
+                <strong style={{ color: "var(--text)" }}>{selectedConvo.other_user}</strong>
+                {selectedConvo.item_title && <span style={{ color: "var(--text-faint)", fontSize: "0.85rem", marginLeft: 8 }}>{selectedConvo.item_title}</span>}
+              </div>
+            )}
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
               {messages.map((m) => {
                 const isMine = m.sender_id === currentUserId;
@@ -244,7 +286,7 @@ export default function Messages() {
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <input
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder="Type a message..."
                 style={{ flex: 1 }}

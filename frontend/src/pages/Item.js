@@ -40,7 +40,9 @@ export default function Item() {
       body: JSON.stringify({ item_id: parseInt(itemID, 10) }),
     });
     const convo = await res.json();
-    navigate(`/messages?convo=${convo.id}`);
+    navigate(`/messages?convo=${convo.id}`, {
+      state: { other_user: item.seller?.first_name, item_title: item.title }
+    });
   };
 
   const handleMarkAsSold = async () => {
