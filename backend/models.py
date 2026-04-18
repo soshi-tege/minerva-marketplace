@@ -107,6 +107,7 @@ class Message(db.Model):
     conversation_id = db.Column(db.Integer, db.ForeignKey("conversations.id"), nullable=False)
     sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     body = db.Column(db.Text, nullable=False)
+    image_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     read_at = db.Column(db.DateTime, nullable=True)
     deleted_at = db.Column(db.DateTime, nullable=True)
@@ -122,4 +123,5 @@ class Message(db.Model):
             "body": "[deleted]" if self.deleted_at else self.body,
             "deleted": bool(self.deleted_at),
             "created_at": self.created_at.isoformat(),
+            "read_at": self.read_at.isoformat() if self.read_at else None,
         }

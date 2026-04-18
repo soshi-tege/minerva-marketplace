@@ -30,14 +30,18 @@ export const getMessages = async (convoId) => {
   return res.json();
 };
 
-export const sendMessage = async (convoId, body) => {
+export const sendMessage = async (convoId, { body, imageFile }) => {
+  const form = new FormData();
+  form.append("body", body || "");
+  if (imageFile) {
+    form.append("image", imageFile);
+  }
   const res = await fetch(`${API_BASE}/messages/conversations/${convoId}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${getToken()}`,
     },
-    body: JSON.stringify({ body }),
+    body: form,
   });
   return res.json();
 };
