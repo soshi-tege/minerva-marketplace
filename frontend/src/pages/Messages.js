@@ -31,7 +31,23 @@ export default function Messages() {
   useEffect(() => {
     const fetchConvos = () => {
       getConversations().then((data) => {
-        setConversations(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : [];
+        // Restore temp conversations that have drafts in localStorage
+        const draftKeys = Object.keys(localStorage).filter(k => k.startsWith("draft_convo_") && localStorage.getItem(k));
+        draftKeys.forEach(key => {
+          const id = Number(key.replace("draft_convo_", ""));
+          if (id && !list.some(c => c.id === id)) {
+            const meta = JSON.parse(localStorage.getItem(`convo_meta_${id}`) || "{}");
+            list.unshift({
+              id,
+              other_user: meta.other_user || "Seller",
+              item_title: meta.item_title || "",
+              last_message: null,
+              _temp: true,
+            });
+          }
+        });
+        setConversations(list);
         setLoadingConvos(false);
       });
     };
@@ -66,6 +82,11 @@ export default function Messages() {
       getMessages(convoIdFromUrl).then((data) => {
         setMessages(Array.isArray(data) ? data : []);
       });
+      // Save meta so we can restore this temp convo if user comes back with a draft
+      localStorage.setItem(`convo_meta_${convoIdFromUrl}`, JSON.stringify({
+        other_user: navState.other_user || "Seller",
+        item_title: navState.item_title || "",
+      }));
       const draft = localStorage.getItem(`draft_convo_${convoIdFromUrl}`) || "";
       setInput(draft);
     }
@@ -131,6 +152,7 @@ export default function Messages() {
     setInput("");
     setImageFile(null);
     localStorage.removeItem(`draft_convo_${selectedConvo.id}`);
+    localStorage.removeItem(`convo_meta_${selectedConvo.id}`);
   };
 
   const handleEditStart = (msg) => {
@@ -209,12 +231,6 @@ export default function Messages() {
           <p style={{ color: "var(--text-muted)", margin: "auto" }}>Select a conversation.</p>
         ) : (
           <>
-            {selectedConvo.other_user && (
-              <div style={{ borderBottom: "1px solid var(--border-light)", paddingBottom: "8px", marginBottom: "12px" }}>
-                <strong style={{ color: "var(--text)" }}>{selectedConvo.other_user}</strong>
-                {selectedConvo.item_title && <span style={{ color: "var(--text-faint)", fontSize: "0.85rem", marginLeft: 8 }}>{selectedConvo.item_title}</span>}
-              </div>
-            )}
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
               {messages.map((m) => {
                 const isMine = m.sender_id === currentUserId;
