@@ -1,5 +1,6 @@
-import React from "react";
+/** Landing page with hero section and feature highlights. */
 import { Link } from "react-router-dom";
+
 export default function Home() {
   return (
     <div>
@@ -9,11 +10,11 @@ export default function Home() {
           Minerva Marketplace provides an easy, sustainable solution for buying and selling items between Minervans in your city.
         </p>
         <div className="home-btn-row">
-          <Link to="/items" className="home-btn-link">
-            <button className="btn-primary home-btn">Browse items</button>
+          <Link to="/items" className="home-btn-link btn-primary home-btn" style={{ textAlign: "center" }}>
+            Browse items
           </Link>
-          <Link to="/post" className="home-btn-link">
-            <button className="home-btn" style={{ background: "var(--secondary-btn)", color: "var(--secondary-btn-text)" }}>Post an item</button>
+          <Link to="/post" className="home-btn-link home-btn" style={{ textAlign: "center", background: "var(--secondary-btn)", color: "var(--secondary-btn-text)" }}>
+            Post an item
           </Link>
         </div>
       </section>

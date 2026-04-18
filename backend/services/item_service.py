@@ -1,3 +1,6 @@
+"""Item service: CRUD operations, search with synonym expansion, filtering,
+sorting, pagination, image uploads, and dashboard helpers."""
+
 import os
 import uuid
 from flask import current_app
@@ -32,9 +35,15 @@ VALID_SORT_OPTIONS = {"newest", "oldest", "price_asc", "price_desc"}
 
 
 def validate_item_data(data, require_all=True):
-    """Validate item fields. Used by both create and update.
-    require_all=True for create, False for update (partial updates allowed).
-    Returns (cleaned_data, errors) tuple.
+    """Validate item fields for create or update.
+
+    Args:
+        data: Dict of field values from the request.
+        require_all: True for create (all required fields must be present),
+                     False for update (only validate provided fields).
+
+    Returns:
+        Dict mapping field names to error messages.  Empty dict means valid.
     """
     errors = {}
 
@@ -53,7 +62,9 @@ def validate_item_data(data, require_all=True):
         errors["price"] = "Price is required."
     elif price_raw is not None:
         try:
-            price_raw = int(price_raw)
+            price_val = int(price_raw)
+            if price_val < 0:
+                errors["price"] = "Price cannot be negative."
         except (ValueError, TypeError):
             errors["price"] = "Price must be a number."
 
@@ -64,6 +75,10 @@ def validate_item_data(data, require_all=True):
     listing_type = data.get("listing_type", "")
     if listing_type and listing_type not in VALID_LISTING_TYPES:
         errors["listing_type"] = "Must be 'offering' or 'request'."
+
+    status = data.get("status", "")
+    if status and status not in ("active", "sold"):
+        errors["status"] = "Status must be 'active' or 'sold'."
 
     purchased_year = data.get("purchased_year", "").strip() if data.get("purchased_year") else ""
     if purchased_year and (not purchased_year.isdigit() or len(purchased_year) != 4):
@@ -76,11 +91,36 @@ def validate_item_data(data, require_all=True):
     return errors
 
 
-def list_items(city=None, listing_type=None, category=None, q=None, sort="newest",
-               page=1, per_page=20, min_price=None, max_price=None):
-    """Query items with composable filters, search, sort, and pagination.
-    Sold items are always pushed to the bottom of results."""
+def list_items(city=None, listing_type=None, category=None, search_query=None,
+               sort="newest", page=1, per_page=20, min_price=None, max_price=None):
+    """Query items with composable filters, synonym-expanded search, sort, and pagination.
+
+    Sold items are always pushed to the bottom of results regardless of
+    the chosen sort order.
+
+    Args:
+        city: Filter by item location.
+        listing_type: Filter by 'offering' or 'request'.
+        category: Filter by category name.
+        search_query: Free-text keyword search (matches title and description).
+                      Automatically expands common synonyms (e.g. earbuds ↔ headphones).
+        sort: One of 'newest', 'oldest', 'price_asc', 'price_desc'.
+        page: 1-based page number.
+        per_page: Items per page (capped at 100).
+        min_price: Minimum price in cents (inclusive).
+        max_price: Maximum price in cents (inclusive).
+
+    Returns:
+        Dict with keys: items, total, page, per_page, has_more.
+    """
     from sqlalchemy import case
+
+    per_page = min(per_page, 100)
+    if page < 1:
+        page = 1
+    if sort not in VALID_SORT_OPTIONS:
+        sort = "newest"
+
     query = Item.query
 
     if city:
@@ -89,9 +129,9 @@ def list_items(city=None, listing_type=None, category=None, q=None, sort="newest
         query = query.filter(Item.listing_type == listing_type)
     if category:
         query = query.filter(Item.category == category)
-    if q:
-        pattern = f"%{q}%"
-        canonical = SYNONYMS.get(q.lower())
+    if search_query:
+        pattern = f"%{search_query}%"
+        canonical = SYNONYMS.get(search_query.lower())
         if canonical:
             alt_pattern = f"%{canonical}%"
             query = query.filter(
@@ -131,12 +171,20 @@ def list_items(city=None, listing_type=None, category=None, q=None, sort="newest
 
 
 def get_item(item_id):
-    """Get a single item by ID."""
+    """Get a single item by ID.  Returns 404 if not found."""
     return Item.query.get_or_404(item_id)
 
 
 def create_item(seller_id, data):
-    """Create a new item listing."""
+    """Create a new item listing and persist it to the database.
+
+    Args:
+        seller_id: ID of the authenticated user creating the listing.
+        data: Validated item fields dict.
+
+    Returns:
+        The newly created Item ORM instance.
+    """
     item = Item(
         seller_id=seller_id,
         title=data.get("title", "").strip(),
@@ -157,7 +205,13 @@ def create_item(seller_id, data):
 
 
 def update_item(item, data):
-    """Update an existing item with provided fields."""
+    """Update an existing item with provided fields.
+
+    Only fields present in *data* are modified; others are left unchanged.
+
+    Returns:
+        The updated Item ORM instance.
+    """
     if "title" in data:
         item.title = data["title"]
     if "category" in data:
@@ -185,14 +239,26 @@ def update_item(item, data):
 
 
 def delete_item(item):
-    """Delete an item."""
+    """Delete an item and cascade-delete its conversations and messages."""
     db.session.delete(item)
     db.session.commit()
 
 
 def save_upload(file):
     """Validate and save an uploaded image file.
-    Uses Cloudinary if CLOUDINARY_URL is set, otherwise saves locally."""
+
+    Uses Cloudinary when the ``CLOUDINARY_URL`` environment variable is set,
+    otherwise falls back to local filesystem storage (dev only).
+
+    Args:
+        file: A Werkzeug ``FileStorage`` object.
+
+    Returns:
+        The public URL of the saved image, or None if no file was provided.
+
+    Raises:
+        ValueError: If the file extension is not allowed or the file exceeds 5 MB.
+    """
     if not file or not file.filename:
         return None
 
@@ -222,19 +288,26 @@ def save_upload(file):
 
 
 def get_user_listings(user_id):
-    """Return (active, sold) item lists for a user's dashboard."""
-    all_items = Item.query.filter_by(seller_id=user_id).order_by(Item.created_at.desc()).all()
-    active = [i.to_dict() for i in all_items if i.status == "active"]
-    sold = [i.to_dict() for i in all_items if i.status == "sold"]
+    """Return (active, sold) item lists for a user's dashboard.
+
+    Args:
+        user_id: The ID of the user whose listings to retrieve.
+
+    Returns:
+        Tuple of (active_items_list, sold_items_list) where each entry
+        is a serialized item dict.
+    """
+    active = [i.to_dict() for i in Item.query.filter_by(seller_id=user_id, status="active").order_by(Item.created_at.desc()).all()]
+    sold = [i.to_dict() for i in Item.query.filter_by(seller_id=user_id, status="sold").order_by(Item.created_at.desc()).all()]
     return active, sold
 
 
 def get_categories():
-    """Return the list of valid categories."""
+    """Return the list of valid item categories."""
     return VALID_CATEGORIES
 
 
 def get_cities():
-    """Return distinct item locations."""
+    """Return a sorted list of distinct cities where items are currently listed."""
     rows = db.session.query(Item.location).filter(Item.location.isnot(None)).distinct().all()
     return sorted([r[0] for r in rows if r[0]])

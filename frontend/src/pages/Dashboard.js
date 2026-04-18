@@ -32,7 +32,7 @@ export default function Dashboard() {
     }, [token]);
 
     if (loading) return <Body><p>Loading...</p></Body>;
-    if (error) return <Body><p style={{ color: "var(--accent)" }}>{error}</p></Body>;
+    if (error) return <Body><p className="text-error">{error}</p></Body>;
 
     return (
         <Body>
@@ -40,9 +40,9 @@ export default function Dashboard() {
 
             {/* Quick Stats */}
             <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: 24 }}>
-                <StatBox label="Active Listings" value={stats.active_count} color="#2980b9" />
-                <StatBox label="Sold Items" value={stats.sold_count} color="#27ae60" />
-                <StatBox label="Unread Messages" value={stats.unread_messages} color="#c0392b" />
+                <StatBox label="Active Listings" value={stats.active_count} color="var(--info)" />
+                <StatBox label="Sold Items" value={stats.sold_count} color="var(--success)" />
+                <StatBox label="Unread Messages" value={stats.unread_messages} color="var(--accent)" />
             </div>
 
             {/* Active Listings */}
@@ -74,7 +74,7 @@ export default function Dashboard() {
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                         {recentMessages.map(m => (
-                            <Link key={m.id} to="/messages" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f0f0f0", color: "inherit" }}>
+                            <Link key={m.id} to="/messages" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border-light)", color: "inherit" }}>
                                 <div>
                                     <strong>{m.other_user}</strong>
                                     <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted)" }}>{m.last_message || "No messages yet"}</p>

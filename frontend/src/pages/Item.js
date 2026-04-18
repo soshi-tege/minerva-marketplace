@@ -99,7 +99,7 @@ export default function Item() {
         <>
           <img
             src={itemImageSrc(item.image_url)}
-            alt=""
+            alt={item.title}
             style={{
               width: "100%",
               maxHeight: 280,
@@ -131,11 +131,11 @@ export default function Item() {
           >
             Status: {item.status}
           </p>
-          {deleteError && <p style={{ color: "var(--accent)", marginTop: 8 }}>{deleteError}</p>}
+          {deleteError && <p className="text-error" style={{ marginTop: 8 }}>{deleteError}</p>}
           <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
             {isSeller ? (
               <>
-                <Button onClick={() => navigate(`/items/${itemID}/edit`)} style="btn-primary">
+                <Button onClick={() => navigate(`/items/${itemID}/edit`)} variant="btn-primary">
                   Edit listing
                 </Button>
                 {item.status !== "sold" && (
@@ -143,13 +143,13 @@ export default function Item() {
                     {saving ? "Updating..." : "Mark as sold"}
                   </Button>
                 )}
-                <Button onClick={handleDelete} style="btn-danger">
+                <Button onClick={handleDelete} variant="btn-danger">
                   {deleting ? "Deleting..." : "Delete listing"}
                 </Button>
               </>
             ) : (
               item.status !== "sold" && (
-                <Button onClick={handleContact} style="btn-primary">
+                <Button onClick={handleContact} variant="btn-primary">
                   Contact Seller
                 </Button>
               )

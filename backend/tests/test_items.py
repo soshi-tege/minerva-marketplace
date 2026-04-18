@@ -86,7 +86,7 @@ def test_delete_own_item(client):
     item = create_item(client, token)
     resp = client.delete(f"/api/items/{item['id']}",
                          headers={"Authorization": f"Bearer {token}"})
-    assert resp.status_code == 200
+    assert resp.status_code == 204
     assert client.get(f"/api/items/{item['id']}").status_code == 404
 
 

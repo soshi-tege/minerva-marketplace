@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../services/authService";
@@ -46,7 +46,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        {error && <div style={{ color: "#c0392b", marginTop: 10 }}>{error}</div>}
+        {error && <div className="text-error" style={{ marginTop: 10 }}>{error}</div>}
         <button
           type="submit"
           className="btn-primary"

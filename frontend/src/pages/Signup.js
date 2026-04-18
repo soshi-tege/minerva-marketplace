@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { registerUser } from "../services/authService";
@@ -51,7 +51,7 @@ export default function Signup() {
         </select>
         <label htmlFor="cohort">Cohort</label>
         <input id="cohort" placeholder="e.g. M27" value={cohort} onChange={(e) => setCohort(e.target.value)} required />
-        {error && <div style={{ color: "#c0392b", marginTop: 10 }}>{error}</div>}
+        {error && <div className="text-error" style={{ marginTop: 10 }}>{error}</div>}
         <button type="submit" className="btn-primary" style={{ marginTop: 16, width: "100%" }} disabled={loading}>
           {loading ? "Signing up..." : "Sign up"}
         </button>

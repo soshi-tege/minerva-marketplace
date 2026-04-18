@@ -1,10 +1,16 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Items from "./Items";
+import { AuthProvider } from "../context/AuthContext";
 
 jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
   Link: ({ children, to }) => <a href={to}>{children}</a>,
 }));
+
+function renderWithProviders(ui) {
+  return render(<AuthProvider>{ui}</AuthProvider>);
+}
 
 beforeEach(() => {
   localStorage.setItem("mm_auth_user", JSON.stringify({ city: "Tokyo" }));
@@ -72,7 +78,7 @@ beforeEach(() => {
 });
 
 test("browse tabs, filters, and pagination work", async () => {
-  render(<Items />);
+  renderWithProviders(<Items />);
 
   await waitFor(() => expect(screen.getByText(/Microwave/i)).toBeInTheDocument());
 
@@ -83,7 +89,7 @@ test("browse tabs, filters, and pagination work", async () => {
   await waitFor(() => expect(screen.getByText(/Need Textbook/i)).toBeInTheDocument());
   expect(global.fetch.mock.calls.some(([url]) => String(url).includes("listing_type=request"))).toBe(true);
 
-  await userEvent.selectOptions(screen.getByDisplayValue("All"), "Furniture");
+  await userEvent.selectOptions(screen.getByLabelText("Filter by category"), "Furniture");
   await waitFor(() =>
     expect(global.fetch.mock.calls.some(([url]) => String(url).includes("category=Furniture"))).toBe(true)
   );

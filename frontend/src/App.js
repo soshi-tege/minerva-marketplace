@@ -1,4 +1,3 @@
-import "./App.css";
 import Header from "./components/Header";
 import Toast from "./components/Toast";
 import ProtectedRoute from "./components/ProtectedRoute";

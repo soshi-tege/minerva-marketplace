@@ -198,22 +198,19 @@ export default function Messages() {
             <img src={emptyMessages} alt="No messages" style={{ width: 80, marginBottom: 16, opacity: 0.9 }} />
             <div style={{ fontWeight: 500, marginBottom: 8 }}>No messages yet</div>
             <div style={{ color: "var(--text-muted)", marginBottom: 16 }}>You have not chatted with anyone yet.</div>
-            <Link to="/items" style={{ textDecoration: "none" }}>
-              <Button style="btn-primary">Start browsing items</Button>
+            <Link to="/items" className="btn-primary" style={{ textDecoration: "none", padding: "12px 20px" }}>
+              Start browsing items
             </Link>
           </div>
         )}
         {conversations.map((c) => (
           <div
             key={c.id}
+            role="button"
+            tabIndex={0}
             onClick={() => selectConvoWithDraft(c)}
-            style={{
-              cursor: "pointer",
-              padding: "0.5rem",
-              borderRadius: "6px",
-              background: selectedConvo?.id === c.id ? "var(--accent-bg)" : "transparent",
-              marginBottom: "4px",
-            }}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && selectConvoWithDraft(c)}
+            className={`convo-item${selectedConvo?.id === c.id ? " convo-item--selected" : ""}`}
           >
             <p style={{ margin: 0, fontWeight: c.has_unread ? 800 : 600, color: "var(--text)" }}>
               {c.has_unread && <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "var(--accent)", marginRight: 6 }} />}
@@ -260,6 +257,7 @@ export default function Messages() {
                           onChange={(e) => setEditInput(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && handleEditSave(m.id)}
                           autoFocus
+                          aria-label="Edit message"
                           style={{ flex: 1, fontSize: 14 }}
                         />
                         <button type="button" onClick={() => handleEditSave(m.id)} className="btn-primary" style={{ padding: "4px 8px", fontSize: 12 }}>
@@ -293,6 +291,7 @@ export default function Messages() {
                       <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", marginTop: 4 }}>
                         <button
                           type="button"
+                          aria-label="Edit message"
                           onClick={() => handleEditStart(m)}
                           style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", opacity: 0.85, padding: 0 }}
                         >
@@ -300,6 +299,7 @@ export default function Messages() {
                         </button>
                         <button
                           type="button"
+                          aria-label="Delete message"
                           onClick={() => handleDelete(m.id)}
                           style={{ fontSize: 11, background: "none", border: "none", cursor: "pointer", opacity: 0.85, padding: 0 }}
                         >
@@ -317,9 +317,10 @@ export default function Messages() {
                 onChange={handleInputChange}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder="Type a message..."
+                aria-label="Type a message"
                 style={{ flex: 1 }}
               />
-              <label className="btn-primary" style={{ width: "auto", padding: "10px 12px", cursor: "pointer" }}>
+              <label className="btn-primary" style={{ width: "auto", padding: "10px 12px", cursor: "pointer" }} aria-label="Attach image">
                 +
                 <input
                   type="file"
@@ -333,7 +334,7 @@ export default function Messages() {
               </button>
             </div>
             {imageFile ? (
-              <p style={{ margin: "8px 0 0", color: "#666", fontSize: "12px" }}>
+              <p style={{ margin: "8px 0 0", color: "var(--text-muted)", fontSize: "12px" }}>
                 Selected image: {imageFile.name}
               </p>
             ) : null}
