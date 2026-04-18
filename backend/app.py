@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import timedelta
 
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
@@ -30,6 +31,7 @@ def create_app():
         logger.warning("JWT_SECRET_KEY not set — using insecure dev default. Do NOT use in production.")
         jwt_secret = "dev-secret-change-in-production"
     app.config["JWT_SECRET_KEY"] = jwt_secret or "test-secret"
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 
     allowed_origins = os.environ.get("CORS_ORIGINS", "*")
     cors_origins = allowed_origins.split(",") if allowed_origins != "*" else "*"
