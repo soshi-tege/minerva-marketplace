@@ -31,23 +31,31 @@ export default function Messages() {
   useEffect(() => {
     const fetchConvos = () => {
       getConversations().then((data) => {
-        const list = Array.isArray(data) ? data : [];
-        // Restore temp conversations that have drafts in localStorage
-        const draftKeys = Object.keys(localStorage).filter(k => k.startsWith("draft_convo_") && localStorage.getItem(k));
-        draftKeys.forEach(key => {
-          const id = Number(key.replace("draft_convo_", ""));
-          if (id && !list.some(c => c.id === id)) {
-            const meta = JSON.parse(localStorage.getItem(`convo_meta_${id}`) || "{}");
-            list.unshift({
-              id,
-              other_user: meta.other_user || "Seller",
-              item_title: meta.item_title || "",
-              last_message: null,
-              _temp: true,
-            });
-          }
+        setConversations((prev) => {
+          const list = Array.isArray(data) ? data : [];
+          // Preserve temp conversations from the current state
+          prev.forEach((c) => {
+            if (c._temp && !list.some((x) => x.id === c.id)) {
+              list.unshift(c);
+            }
+          });
+          // Also restore temp conversations from localStorage drafts
+          const draftKeys = Object.keys(localStorage).filter(k => k.startsWith("draft_convo_") && localStorage.getItem(k));
+          draftKeys.forEach(key => {
+            const id = Number(key.replace("draft_convo_", ""));
+            if (id && !list.some(c => c.id === id)) {
+              const meta = JSON.parse(localStorage.getItem(`convo_meta_${id}`) || "{}");
+              list.unshift({
+                id,
+                other_user: meta.other_user || "",
+                item_title: meta.item_title || "",
+                last_message: null,
+                _temp: true,
+              });
+            }
+          });
+          return list;
         });
-        setConversations(list);
         setLoadingConvos(false);
       });
     };
