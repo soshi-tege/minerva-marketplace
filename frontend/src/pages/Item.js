@@ -138,7 +138,7 @@ export default function Item() {
                 <Button onClick={() => navigate(`/items/${itemID}/edit`)} variant="btn-primary">
                   Edit listing
                 </Button>
-                {item.status !== "sold" && (
+                {item.status !== "sold" && item.listing_type !== "request" && (
                   <Button onClick={handleMarkAsSold}>
                     {saving ? "Updating..." : "Mark as sold"}
                   </Button>

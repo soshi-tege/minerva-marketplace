@@ -394,3 +394,53 @@ def test_item_includes_seller_info(client):
     assert data["seller"]["city"] == "San Francisco"
     assert data["seller"]["cohort"] == "M28"
     assert "created_at" in data["seller"]
+
+
+# ── Synonym Search ─────────────────────────────────────────
+
+def test_synonym_search_earbuds_finds_headphones(client):
+    token = get_token(client, email="syn1@uni.minerva.edu")
+    create_item(client, token, title="Wireless Headphones", category="Electronics")
+    resp = client.get("/api/items?q=earbuds")
+    items = resp.get_json()["items"]
+    assert any("Headphones" in i["title"] for i in items)
+
+
+def test_synonym_search_headphones_finds_earbuds(client):
+    token = get_token(client, email="syn2@uni.minerva.edu")
+    create_item(client, token, title="Bluetooth Earbuds", category="Electronics")
+    resp = client.get("/api/items?q=headphones")
+    items = resp.get_json()["items"]
+    assert any("Earbuds" in i["title"] for i in items)
+
+
+def test_synonym_search_laptop_finds_notebook(client):
+    token = get_token(client, email="syn3@uni.minerva.edu")
+    create_item(client, token, title="Lenovo Notebook", category="Electronics")
+    resp = client.get("/api/items?q=laptop")
+    items = resp.get_json()["items"]
+    assert any("Notebook" in i["title"] for i in items)
+
+
+def test_synonym_search_couch_finds_sofa(client):
+    token = get_token(client, email="syn4@uni.minerva.edu")
+    create_item(client, token, title="IKEA Sofa", category="Furniture")
+    resp = client.get("/api/items?q=couch")
+    items = resp.get_json()["items"]
+    assert any("Sofa" in i["title"] for i in items)
+
+
+def test_synonym_search_tv_finds_television(client):
+    token = get_token(client, email="syn5@uni.minerva.edu")
+    create_item(client, token, title="Samsung Television 42 inch", category="Electronics")
+    resp = client.get("/api/items?q=tv")
+    items = resp.get_json()["items"]
+    assert any("Television" in i["title"] for i in items)
+
+
+def test_nonsyonym_search_returns_no_false_matches(client):
+    token = get_token(client, email="syn6@uni.minerva.edu")
+    create_item(client, token, title="Rice Cooker", category="Kitchen")
+    resp = client.get("/api/items?q=laptop")
+    items = resp.get_json()["items"]
+    assert not any("Rice Cooker" in i["title"] for i in items)
