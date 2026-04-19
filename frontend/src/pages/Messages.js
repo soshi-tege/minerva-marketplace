@@ -3,7 +3,7 @@ import { getConversations, getMessages, sendMessage, editMessage, deleteMessage,
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/Button";
 import emptyMessages from "../assets/empty-messages.svg";
-import { Link, useSearchParams, useLocation } from "react-router-dom";
+import { Link, useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { itemImageSrc } from "../config";
 
 function formatMessageTime(isoString) {
@@ -17,6 +17,7 @@ export default function Messages() {
   const currentUserId = user?.id;
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [selectedConvo, setSelectedConvo] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -147,8 +148,12 @@ export default function Messages() {
     }
   };
 
-  // Restore draft when selecting a conversation
+  // Restore draft when selecting a conversation; clear URL param so the
+  // URL-based effect doesn't snap back to a previous conversation.
   const selectConvoWithDraft = (convo) => {
+    if (searchParams.get("convo")) {
+      navigate("/messages", { replace: true });
+    }
     selectConvo(convo);
     const draft = localStorage.getItem(`draft_convo_${convo.id}`) || "";
     setInput(draft);
